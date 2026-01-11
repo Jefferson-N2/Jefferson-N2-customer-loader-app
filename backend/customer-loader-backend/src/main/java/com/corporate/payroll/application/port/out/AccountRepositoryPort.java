@@ -9,8 +9,8 @@ public interface AccountRepositoryPort {
     /**
      * Guarda una cuenta en la base de datos
      */
-    Account save(Account account);
-    
+    void save(Account account);
+
     /**
      * Busca una cuenta por su ID
      */

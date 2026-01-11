@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClientRepositoryPort {
-    Client save(Client client);
+
+    void save(Client client);
     Optional<Client> findById(Long id);
     boolean existsByIdNumber(String idNumber);
 

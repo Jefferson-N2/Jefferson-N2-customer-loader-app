@@ -8,7 +8,7 @@ public interface PayrollPaymentRepositoryPort {
     /**
      * Guarda un pago de nómina
      */
-    PayrollPayment save(PayrollPayment payment);
+    void save(PayrollPayment payment);
     
     /**
      * Obtiene todos los pagos de una cuenta

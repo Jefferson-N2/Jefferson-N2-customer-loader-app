@@ -2,6 +2,8 @@ package com.corporate.payroll.application.port.out;
 
 import com.corporate.payroll.adapter.in.web.dto.FileSummaryResponseDto;
 import com.corporate.payroll.domain.model.BulkLoadError;
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 
 /**
@@ -11,12 +13,11 @@ import java.util.List;
 public interface BulkLoadErrorRepositoryPort {
     
     /**
-     * Persiste un error de carga masiva
-     * @param error el error a persistir
-     * @return el error persistido con ID generado
+     * Persiste una Lista de errores de carga masiva
+     * @param errors el error a persistir
      */
-    BulkLoadError save(BulkLoadError error);
-    
+    void saveAll(List<BulkLoadError> errors);
+
     /**
      * Obtiene un resumen de todos los archivos procesados (paginado).
      * Devuelve un registro por archivo con su nombre y estado.
