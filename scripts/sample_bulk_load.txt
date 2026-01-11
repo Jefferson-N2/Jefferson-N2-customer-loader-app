@@ -1,0 +1,9 @@
+Tipo identificacion,Numero identificacion,Fecha ingreso,Valor nomina,Email,Numero celular
+C,1725364578, 2026-01-09,800, jaime123@gmail.com, 0954887845
+P,A123, 2026-01-07,700, jose123@gmail.com, 0954887842
+C,1234567890,2024-01-15,3500000,juan.garcia@example.com,3051234567
+C,9876543210,2024-02-20,4200000,maria.rodriguez@example.com,3109876543
+P,AB123456,2024-03-10,3800000,pedro.martinez@example.com,3157894560
+C,5555555555,2024-04-05,3900000,sandra.hernandez@example.com,3128765432
+P,CD789012,2024-05-12,4100000,roberto.lopez@example.com,3161234567
+C,1111111111,2024-06-01,3600000,luz.perez@example.com,3159876543
