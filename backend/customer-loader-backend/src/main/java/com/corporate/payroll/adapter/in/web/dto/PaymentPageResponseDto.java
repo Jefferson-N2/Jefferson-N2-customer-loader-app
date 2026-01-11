@@ -4,14 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PayrollPaymentResponseDto {
-    private Long id;
-    private String paymentDate;
-    private String amount;
-    private String status;
+public class PaymentPageResponseDto {
+    
+    private String accountNumber;
+    private int page;
+    private int pageSize;
+    private int totalPages;
+    private List<PaymentDto> payments;
 }

@@ -19,15 +19,6 @@ public interface BulkLoadErrorRepositoryPort {
     void saveAll(List<BulkLoadError> errors);
 
     /**
-     * Obtiene un resumen de todos los archivos procesados (paginado).
-     * Devuelve un registro por archivo con su nombre y estado.
-     * @param offset desplazamiento para paginación
-     * @param limit cantidad de registros por página
-     * @return lista paginada de resúmenes de archivos
-     */
-    List<FileSummaryResponseDto> findAllFilesSummary(long offset, int limit);
-    
-    /**
      * Busca todos los errores de un archivo específico (paginado).
      * El nombre del archivo incluye timestamp en formato: ddmmaaahh:mm:ss
      * @param fileName nombre del archivo
@@ -36,4 +27,19 @@ public interface BulkLoadErrorRepositoryPort {
      * @return lista de errores encontrados
      */
     List<BulkLoadError> findByFileName(String fileName, long offset, int limit);
+    
+    /**
+     * Busca todos los errores asociados a un cliente específico
+     * @param clientCode código del cliente
+     * @return lista de errores del cliente
+     */
+    List<BulkLoadError> findByClientCode(String clientCode);
+    
+    /**
+     * Busca todos los errores asociados a un cliente en un proceso específico
+     * @param processId ID del proceso de carga
+     * @param clientCode código del cliente
+     * @return lista de errores del cliente en el proceso
+     */
+    List<BulkLoadError> findByClientCodeAndProcessId(String processId, String clientCode);
 }

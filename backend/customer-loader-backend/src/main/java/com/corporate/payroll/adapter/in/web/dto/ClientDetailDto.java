@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO que representa los detalles de un cliente creado exitosamente
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientResponseDto {
-    private Long id;
+public class ClientDetailDto {
     private String clientCode;
     private String idType;
     private String idNumber;
@@ -20,4 +22,5 @@ public class ClientResponseDto {
     private String joinDate;
     private String email;
     private String phoneNumber;
+    private ClientAccountDto account;
 }

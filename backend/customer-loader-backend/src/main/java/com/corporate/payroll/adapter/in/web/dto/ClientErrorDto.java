@@ -5,14 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO que representa un error asociado a un cliente específico
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountResponseDto {
-    private Long id;
-    private String accountNumber;
-    private Long clientId;
-    private String payrollValue;
-    private String status;
+public class ClientErrorDto {
+    private Integer rowNumber;
+    private String errorType;
+    private String errorMessage;
 }

@@ -10,17 +10,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BulkLoadError {
+public class BulkLoadProcess {
     
     private Long id;
     private String processId;
-    private String clientCode;
-    private String idType;
-    private String idNumber;
-    private Integer rowNumber;
-    private String errorMessage;
-    private String errorType;
     private String fileName;
+    private String status;
+    private Integer totalRecords;
+    private Integer successfulCount;
+    private Integer errorCount;
     private LocalDateTime processingDate;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

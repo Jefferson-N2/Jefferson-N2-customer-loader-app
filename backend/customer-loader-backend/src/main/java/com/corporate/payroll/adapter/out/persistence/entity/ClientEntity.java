@@ -50,6 +50,9 @@ public class ClientEntity {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
+    @Column(name = "process_id", length = 36)
+    private String processId;
+
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<AccountEntity> accounts;
 

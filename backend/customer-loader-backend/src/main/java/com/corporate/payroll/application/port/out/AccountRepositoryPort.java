@@ -2,7 +2,6 @@ package com.corporate.payroll.application.port.out;
 
 import com.corporate.payroll.domain.model.Account;
 import java.util.Optional;
-import java.util.List;
 
 public interface AccountRepositoryPort {
     
@@ -10,24 +9,20 @@ public interface AccountRepositoryPort {
      * Guarda una cuenta en la base de datos
      */
     void save(Account account);
-
-    /**
-     * Busca una cuenta por su ID
-     */
-    Optional<Account> findById(Long id);
     
     /**
-     * Busca una cuenta por su número de cuenta
+     * Verifica si existe una cuenta con el número especificado.
+     * Garantiza la unicidad de números de cuenta durante la carga masiva.
+     */
+    boolean existsByAccountNumber(String accountNumber);
+    
+    /**
+     * Obtiene una cuenta por su número
      */
     Optional<Account> findByAccountNumber(String accountNumber);
     
     /**
-     * Obtiene todas las cuentas de un cliente
+     * Obtiene la cuenta de un cliente por ID de cliente
      */
-    List<Account> findByClientId(Long clientId);
-    
-    /**
-     * Verifica si existe una cuenta con el número especificado
-     */
-    boolean existsByAccountNumber(String accountNumber);
+    Optional<Account> findByClientId(Long clientId);
 }

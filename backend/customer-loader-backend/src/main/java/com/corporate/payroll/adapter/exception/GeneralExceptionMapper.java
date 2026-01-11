@@ -1,4 +1,4 @@
-package com.corporate.payroll.adapter.in.web.exception;
+package com.corporate.payroll.adapter.exception;
 
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -14,7 +14,8 @@ public class GeneralExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
         ErrorResponse errorResponse = ErrorResponse.builder()
-            .message("Error interno del servidor: " + exception.getMessage())
+            .message("Error interno del servidor, POR FAVOR CONTACTE CON EL ADMINISTRADOR: "
+                    + exception.getMessage())
             .errorCode("INTERNAL_SERVER_ERROR")
             .timestamp(System.currentTimeMillis())
             .build();

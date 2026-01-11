@@ -23,5 +23,6 @@ public class Client {
     private LocalDate joinDate;
     private String email;
     private String phoneNumber;
+    private String processId;
     private List<Account> accounts;
 }

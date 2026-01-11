@@ -4,6 +4,7 @@ import com.corporate.payroll.adapter.in.web.dto.DatabookResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ class DatabookAdapterTest {
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
         databookService = Mockito.mock(DatabookService.class);
         databookAdapter = new DatabookAdapter(databookService);
     }

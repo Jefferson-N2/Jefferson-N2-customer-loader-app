@@ -2,6 +2,7 @@ package com.corporate.payroll.domain.service;
 
 import com.corporate.payroll.domain.model.BulkLoadError;
 import com.corporate.payroll.domain.util.ValidationUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Validador de clientes que devuelve errores en lugar de lanzar excepciones
  */
+@Slf4j
 public class ClientValidator {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
@@ -26,6 +28,7 @@ public class ClientValidator {
     public static List<BulkLoadError> validateClient(String idType, String idNumber, String joinDate,
                                                       String payrollValue, String email, String phoneNumber,
                                                       Integer rowNumber) {
+        log.debug("Iniciando validación de cliente en fila: {}", rowNumber);
         List<BulkLoadError> errors = new ArrayList<>();
 
         errors.add(ValidationUtils.validateNotBlank(idType, "Tipo de identificación", rowNumber));
@@ -51,8 +54,17 @@ public class ClientValidator {
         errors.add(ValidationUtils.validatePattern(phoneNumber, Pattern.compile("^\\d{10}$"),
                 "Número de celular debe contener exactamente 10 dígitos numéricos", rowNumber));
 
-        return errors.stream()
+        List<BulkLoadError> filteredErrors = errors.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        
+        if (filteredErrors.isEmpty()) {
+            log.debug("Validación exitosa para cliente en fila: {}", rowNumber);
+        } else {
+            log.warn("Se encontraron {} errores para cliente en fila: {}", 
+                filteredErrors.size(), rowNumber);
+        }
+        
+        return filteredErrors;
     }
 }

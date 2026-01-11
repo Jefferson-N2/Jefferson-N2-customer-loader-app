@@ -39,30 +39,14 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
     }
 
     @Override
-    public Optional<Account> findById(Long id) {
-        AccountEntity entity = entityManager.find(AccountEntity.class, id);
-        return Optional.ofNullable(entity).map(accountMapper::toModel);
-    }
-
-    @Override
-    public Optional<Account> findByAccountNumber(String accountNumber) {
-        return entityManager.createQuery(
-                        "SELECT a FROM AccountEntity a WHERE a.accountNumber = :accountNumber", AccountEntity.class)
-                .setParameter("accountNumber", accountNumber)
-                .getResultStream()
-                .findFirst()
-                .map(accountMapper::toModel);
-    }
-
-    @Override
-    public List<Account> findByClientId(Long clientId) {
+    public Optional<Account> findByClientId(Long clientId) {
         List<AccountEntity> entities = entityManager.createQuery(
                         "SELECT a FROM AccountEntity a WHERE a.clientId = :clientId", AccountEntity.class)
                 .setParameter("clientId", clientId)
                 .getResultList();
         return entities.stream()
                 .map(accountMapper::toModel)
-                .collect(Collectors.toList());
+                .findAny();
     }
 
     @Override
@@ -72,5 +56,11 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
                 .setParameter("accountNumber", accountNumber)
                 .getSingleResult();
         return count > 0;
+    }
+
+    @Override
+    public Optional<Account> findByAccountNumber(String accountNumber) {
+        AccountEntity entity = entityManager.find(AccountEntity.class, accountNumber);
+        return Optional.ofNullable(entity).map(accountMapper::toModel);
     }
 }

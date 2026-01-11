@@ -1,26 +1,26 @@
-package com.corporate.payroll.domain.model;
+package com.corporate.payroll.adapter.in.web.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * DTO que representa un error encontrado durante la carga masiva
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BulkLoadError {
+public class BulkLoadErrorDto {
     
-    private Long id;
-    private String processId;
-    private String clientCode;
     private String idType;
     private String idNumber;
     private Integer rowNumber;
     private String errorMessage;
     private String errorType;
-    private String fileName;
     private LocalDateTime processingDate;
-    private LocalDateTime createdAt;
 }

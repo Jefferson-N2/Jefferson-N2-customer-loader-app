@@ -4,18 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
+/**
+ * DTO para la respuesta de POST /bulk-load/clients
+ * Contiene un identificador único del proceso y estadísticas de carga
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BulkLoadStatisticsResponseDto {
-    
+public class BulkLoadResponseDto {
     private String processId;
-    private int successfulCount;
+    private String status;
+    private int successCount;
     private int errorCount;
-    private int totalCount;    
     private String message;
-    private LocalDateTime processedAt;
 }

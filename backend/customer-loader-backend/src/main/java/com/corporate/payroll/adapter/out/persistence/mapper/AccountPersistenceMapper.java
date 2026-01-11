@@ -10,7 +10,7 @@ public interface AccountPersistenceMapper {
     
     @Mapping(source = "id", target = "id")
     @Mapping(source = "accountNumber", target = "accountNumber")
-    @Mapping(source = "clientId", target = "clientId")
+    @Mapping(source = "clientId", target = "client.id")
     @Mapping(source = "payrollValue", target = "payrollValue")
     @Mapping(source = "status", target = "status")
     @Mapping(target = "payments", ignore = true)
@@ -18,7 +18,7 @@ public interface AccountPersistenceMapper {
     
     @Mapping(source = "id", target = "id")
     @Mapping(source = "accountNumber", target = "accountNumber")
-    @Mapping(source = "clientId", target = "clientId")
+    @Mapping(source = "client.id", target = "clientId")
     @Mapping(source = "payrollValue", target = "payrollValue")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "payments", target = "payments")

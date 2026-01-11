@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ClientDetailResponseDto {
-    private Long id;
+    
+    private String processId;
     private String clientCode;
     private String idType;
     private String idNumber;
@@ -21,5 +21,6 @@ public class ClientDetailResponseDto {
     private String joinDate;
     private String email;
     private String phoneNumber;
-    private List<AccountDetailDto> accounts;
+    private ClientAccountDto account;
 }
+

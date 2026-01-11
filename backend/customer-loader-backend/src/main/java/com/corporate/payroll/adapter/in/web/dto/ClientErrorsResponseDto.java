@@ -6,14 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
 
+/**
+ * DTO para la respuesta de errores de un cliente específico
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountDetailDto {
-    private Long id;
-    private String accountNumber;
-    private String payrollValue;
-    private String status;
-    private List<PayrollPaymentResponseDto> payments;
+public class ClientErrorsResponseDto {
+    private String processId;
+    private String clientCode;
+    private List<ClientErrorDto> errors;
 }

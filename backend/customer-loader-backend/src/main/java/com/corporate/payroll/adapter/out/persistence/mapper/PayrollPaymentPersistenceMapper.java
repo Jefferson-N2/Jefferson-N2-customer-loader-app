@@ -9,14 +9,14 @@ import org.mapstruct.Mapping;
 public interface PayrollPaymentPersistenceMapper {
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "accountId", target = "account.id")
     @Mapping(source = "paymentDate", target = "paymentDate")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "status", target = "status")
     PayrollPaymentEntity toDomainEntity(PayrollPayment payrollPayment);
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "account.id", target = "accountId")
     @Mapping(source = "paymentDate", target = "paymentDate")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "status", target = "status")

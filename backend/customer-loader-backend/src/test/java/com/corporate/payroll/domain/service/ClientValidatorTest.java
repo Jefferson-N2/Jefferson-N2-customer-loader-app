@@ -7,16 +7,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests para ClientValidator que devuelve List<BulkLoadError>
- * Los validadores no lanzan excepciones, sino que retornan errores en una lista
- */
 class ClientValidatorTest {
 
     private static final Integer ROW_NUMBER = 1;
 
     @Test
-    void testValidateClientWithValidDataShouldReturnEmptyList() {
+    void testValidateClientWithValidDataReturnsEmptyList() {
         String idType = "C";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
@@ -27,11 +23,12 @@ class ClientValidatorTest {
         List<BulkLoadError> errors = ClientValidator.validateClient(
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
-        assertEquals(0, errors.size(), "No debería haber errores con datos válidos");
+        assertEquals(0, errors.size(), "Valid data should return empty error list");
+        assertTrue(errors.isEmpty(), "Error list should be empty for valid data");
     }
 
     @Test
-    void testValidateClientWithInvalidIdTypeShouldReturnError() {
+    void testValidateClientWithInvalidIdTypeReturnsError() {
         String idType = "X";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
@@ -44,11 +41,11 @@ class ClientValidatorTest {
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("Tipo de identificación debe ser")),
-                "Debe haber error sobre tipo de identificación");
+                "Should return error for invalid ID type");
     }
 
     @Test
-    void testValidateClientWithBlankIdTypeShouldReturnError() {
+    void testValidateClientWithBlankIdTypeReturnsError() {
         String idType = "";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
@@ -61,11 +58,11 @@ class ClientValidatorTest {
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("no puede estar vacío")),
-                "Debe haber error sobre campo vacío");
+                "Should return error for blank ID type");
     }
 
     @Test
-    void testValidateClientWithInvalidIdNumberShouldReturnError() {
+    void testValidateClientWithInvalidIdNumberReturnsError() {
         String idType = "C";
         String idNumber = "123-456!";
         String joinDate = "2025-01-15";
@@ -78,11 +75,11 @@ class ClientValidatorTest {
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("alfanumérico")),
-                "Debe haber error sobre número alfanumérico");
+                "Should return error for non-alphanumeric ID number");
     }
 
     @Test
-    void testValidateClientWithInvalidDateShouldReturnError() {
+    void testValidateClientWithInvalidDateReturnsError() {
         String idType = "C";
         String idNumber = "12345678";
         String joinDate = "15/01/2025";
@@ -93,17 +90,18 @@ class ClientValidatorTest {
         List<BulkLoadError> errors = ClientValidator.validateClient(
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
+        assertFalse(errors.isEmpty(), "Should return errors for invalid date format");
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("yyyy-MM-dd")),
-                "Debe haber error sobre formato de fecha");
+                "Should return error for incorrect date format");
     }
 
     @Test
-    void testValidateClientWithInvalidPayrollValueShouldReturnError() {
+    void testValidateClientWithInvalidPayrollValueReturnsError() {
         String idType = "C";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
-        String payrollValue = "cincuenta mil"; // No es numérico
+        String payrollValue = "cincuenta mil"; 
         String email = "juan.perez@empresa.com";
         String phoneNumber = "3125551234";
 
@@ -113,16 +111,16 @@ class ClientValidatorTest {
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("numérico") ||
                                 e.getErrorMessage().contains("Valor del pago")),
-                "Debe haber error sobre valor numérico");
+                "Should return error for non-numeric payroll value");
     }
 
     @Test
-    void testValidateClientWithInvalidEmailShouldReturnError() {
+    void testValidateClientWithInvalidEmailReturnsError() {
         String idType = "C";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
         String payrollValue = "50000.00";
-        String email = "invalid-email"; // Sin @
+        String email = "invalid-email"; 
         String phoneNumber = "3125551234";
 
         List<BulkLoadError> errors = ClientValidator.validateClient(
@@ -130,28 +128,28 @@ class ClientValidatorTest {
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("Correo")),
-                "Debe haber error sobre formato de correo");
+                "Should return error for invalid email format");
     }
 
     @Test
-    void testValidateClientWithInvalidPhoneNumberShouldReturnError() {
+    void testValidateClientWithInvalidPhoneNumberReturnsError() {
         String idType = "C";
         String idNumber = "12345678";
         String joinDate = "2025-01-15";
         String payrollValue = "50000.00";
         String email = "juan.perez@empresa.com";
-        String phoneNumber = "312555"; // Solo 6 dígitos
+        String phoneNumber = "312555";
 
         List<BulkLoadError> errors = ClientValidator.validateClient(
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("10 dígitos")),
-                "Debe haber error sobre 10 dígitos");
+                "Should return error for phone number not having 10 digits");
     }
 
     @Test
-    void testValidateClientWithMultipleErrorsShouldReturnAllErrors() {
+    void testValidateClientWithMultipleErrorsReturnsAllErrors() {
         String idType = "X";
         String idNumber = "ABC@#$";
         String joinDate = "invalid";
@@ -162,17 +160,15 @@ class ClientValidatorTest {
         List<BulkLoadError> errors = ClientValidator.validateClient(
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
-        assertTrue(errors.size() > 5, "Debe haber más de 5 errores");
-
+        assertTrue(errors.size() > 5, "Should return multiple errors for multiple invalid fields");
         assertTrue(errors.stream().allMatch(e -> e.getRowNumber().equals(ROW_NUMBER)),
-                "Todos los errores deben tener el rowNumber correcto");
-
+                "All errors should have correct row number");
         assertTrue(errors.stream().allMatch(e -> "VALIDATION_ERROR".equals(e.getErrorType())),
-                "Todos los errores deben ser de tipo VALIDATION_ERROR");
+                "All errors should be of type VALIDATION_ERROR");
     }
 
     @Test
-    void testValidateClientWithNullFieldsShouldReturnErrors() {
+    void testValidateClientWithNullFieldsReturnsErrors() {
         String idType = null;
         String idNumber = null;
         String joinDate = null;
@@ -185,11 +181,11 @@ class ClientValidatorTest {
 
         assertTrue(errors.stream().anyMatch(e ->
                         e.getErrorMessage().contains("no puede estar vacío")),
-                "Debe haber errores sobre campos vacíos");
+                "Should return errors for null fields");
     }
 
     @Test
-    void testValidateClientWithValidPassportShouldPass() {
+    void testValidateClientWithValidPassportPasses() {
         String idType = "P";
         String idNumber = "AB123456";
         String joinDate = "2025-02-20";
@@ -200,7 +196,8 @@ class ClientValidatorTest {
         List<BulkLoadError> errors = ClientValidator.validateClient(
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
-        assertEquals(0, errors.size(), "No debería haber errores con pasaporte válido");
+        assertEquals(0, errors.size(), "Valid passport data should return no errors");
+        assertTrue(errors.isEmpty(), "Error list should be empty for valid passport");
     }
 
     @Test
@@ -212,7 +209,6 @@ class ClientValidatorTest {
                 idType, "12345678", "2025-01-15", "50000", "test@test.com", "3125551234", rowNumber);
 
         assertTrue(errors.stream().allMatch(e -> e.getRowNumber().equals(rowNumber)),
-                "Todos los errores deben tener rowNumber = 42");
+                "All errors should have the specified row number");
     }
 }
-
