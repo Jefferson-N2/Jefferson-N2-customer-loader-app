@@ -1,0 +1,30 @@
+package com.corporate.payroll.adapter.out.persistence.mapper;
+
+import com.corporate.payroll.domain.model.BulkLoadError;
+import com.corporate.payroll.adapter.out.persistence.entity.BulkLoadErrorEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+@Mapper(componentModel = "cdi")
+public interface BulkLoadErrorPersistenceMapper {
+    
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "clientCode", target = "clientCode")
+    @Mapping(source = "idType", target = "idType")
+    @Mapping(source = "idNumber", target = "idNumber")
+    @Mapping(source = "rowNumber", target = "rowNumber")
+    @Mapping(source = "errorMessage", target = "errorMessage")
+    @Mapping(source = "errorType", target = "errorType")
+    @Mapping(source = "createdAt", target = "createdAt")
+    BulkLoadErrorEntity toDomainEntity(BulkLoadError bulkLoadError);
+    
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "clientCode", target = "clientCode")
+    @Mapping(source = "idType", target = "idType")
+    @Mapping(source = "idNumber", target = "idNumber")
+    @Mapping(source = "rowNumber", target = "rowNumber")
+    @Mapping(source = "errorMessage", target = "errorMessage")
+    @Mapping(source = "errorType", target = "errorType")
+    @Mapping(source = "createdAt", target = "createdAt")
+    BulkLoadError toModel(BulkLoadErrorEntity bulkLoadErrorEntity);
+}
