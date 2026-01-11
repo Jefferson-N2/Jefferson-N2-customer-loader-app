@@ -5,12 +5,15 @@ import com.corporate.payroll.adapter.in.web.dto.DatabookResponseDto;
 import com.corporate.payroll.application.port.in.BulkLoadClientUseCase;
 import com.corporate.payroll.application.port.out.ClientRepositoryPort;
 import com.corporate.payroll.application.port.out.AccountRepositoryPort;
+import com.corporate.payroll.application.port.out.PayrollPaymentRepositoryPort;
 import com.corporate.payroll.application.port.out.DatabookPort;
 import com.corporate.payroll.application.port.out.BulkLoadErrorRepositoryPort;
 import com.corporate.payroll.application.port.out.BulkLoadProcessRepositoryPort;
+import com.corporate.payroll.application.service.dto.RowProcessingContext;
 import com.corporate.payroll.application.util.FileProcessingConstants;
 import com.corporate.payroll.domain.model.Client;
 import com.corporate.payroll.domain.model.Account;
+import com.corporate.payroll.domain.model.PayrollPayment;
 import com.corporate.payroll.domain.model.BulkLoadError;
 import com.corporate.payroll.domain.model.BulkLoadProcess;
 import com.corporate.payroll.domain.exception.BusinessLogicException;
@@ -40,6 +43,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
 
     private final ClientRepositoryPort clientRepository;
     private final AccountRepositoryPort accountRepository;
+    private final PayrollPaymentRepositoryPort paymentRepository;
     private final DatabookPort databookService;
     private final BulkLoadErrorRepositoryPort errorRepository;
     private final BulkLoadProcessRepositoryPort bulkLoadProcessRepository;
@@ -49,6 +53,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
     @Inject
     public BulkLoadClientUse(ClientRepositoryPort clientRepository,
                              AccountRepositoryPort accountRepository,
+                             PayrollPaymentRepositoryPort paymentRepository,
                              DatabookPort databookService,
                              BulkLoadErrorRepositoryPort errorRepository,
                              BulkLoadProcessRepositoryPort bulkLoadProcessRepository,
@@ -56,6 +61,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                              AccountFactory accountFactory) {
         this.clientRepository = clientRepository;
         this.accountRepository = accountRepository;
+        this.paymentRepository = paymentRepository;
         this.databookService = databookService;
         this.errorRepository = errorRepository;
         this.bulkLoadProcessRepository = bulkLoadProcessRepository;
@@ -75,13 +81,11 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
 
         String processId = UUID.randomUUID().toString();
         LocalDateTime processingDate = LocalDateTime.now();
-        fileName = appendTimestampToFileName(fileName, processingDate);
 
         int successCount = 0;
         int errorCount = 0;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream))) {
-            // Crear registro del proceso
             BulkLoadProcess bulkLoadProcess = BulkLoadProcess.builder()
                     .processId(processId)
                     .fileName(fileName)
@@ -91,17 +95,6 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                     .errorCount(0)
                     .build();
             bulkLoadProcessRepository.save(bulkLoadProcess);
-
-            // Validar encabezados del archivo
-            String headerLine = reader.readLine();
-            BulkLoadError headerError = validateHeaders(headerLine, fileName, processingDate, processId);
-            if (headerError != null) {
-                errorRepository.saveAll(Arrays.asList(headerError));
-                bulkLoadProcess.setStatus("FAILED");
-                bulkLoadProcess.setErrorCount(1);
-                bulkLoadProcessRepository.update(bulkLoadProcess);
-                throw new BusinessLogicException(headerError.getErrorMessage());
-            }
 
             String line;
             int lineNumber = 1;
@@ -160,8 +153,20 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                     continue;
                 }
 
-                if (processValidRow(idType, idNumber, joinDate, payrollValue, email, phoneNumber,
-                        lineNumber, fileName, processingDate, processId, clientFactory, accountFactory)) {
+                RowProcessingContext context = RowProcessingContext.builder()
+                        .idType(idType)
+                        .idNumber(idNumber)
+                        .joinDate(joinDate)
+                        .payrollValue(payrollValue)
+                        .email(email)
+                        .phoneNumber(phoneNumber)
+                        .lineNumber(lineNumber)
+                        .fileName(fileName)
+                        .processingDate(processingDate)
+                        .processId(processId)
+                        .build();
+
+                if (processValidRow(context)) {
                     successCount++;
                 } else {
                     errorCount++;
@@ -180,131 +185,129 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
             return buildStatisticsResponse(successCount, errorCount, processId);
 
         } catch (IOException e) {
-            String sanitizedMessage = e.getMessage() != null ? 
-                e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
+            String sanitizedMessage = e.getMessage() != null ?
+                    e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
             log.error("Error al leer el archivo: {}", sanitizedMessage, e);
             throw new BusinessLogicException("Error al leer el archivo: " + sanitizedMessage);
         } catch (Exception e) {
-            String sanitizedMessage = e.getMessage() != null ? 
-                e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
+            String sanitizedMessage = e.getMessage() != null ?
+                    e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
             log.error("Error inesperado procesando archivo: {}", sanitizedMessage, e);
             throw new BusinessLogicException("Error procesando archivo: " + sanitizedMessage);
         }
     }
 
-    /**
-     * Procesa una fila válida: verifica duplicados, consulta databook, crea cliente y cuenta
-     */
-    private boolean processValidRow(String idType, String idNumber, String joinDate,
-                                   String payrollValue, String email, String phoneNumber,
-                                   Integer lineNumber, String fileName, LocalDateTime processingDate,
-                                   String processId, ClientFactory clientFactory, AccountFactory accountFactory) {
+    private boolean processValidRow(RowProcessingContext context) {
+        boolean hasErrors = false;
+        List<BulkLoadError> errors = new ArrayList<>();
+        
         try {
-            if (clientRepository.existsByIdNumber(idNumber)) {
+            // Verificar si el cliente ya existe
+            if (clientRepository.existsByIdNumber(context.getIdNumber())) {
                 BulkLoadError error = BulkLoadError.builder()
-                        .processId(processId)
-                        .idType(idType)
-                        .idNumber(idNumber)
-                        .lineNumber(lineNumber)
+                        .processId(context.getProcessId())
+                        .idType(context.getIdType())
+                        .idNumber(context.getIdNumber())
+                        .lineNumber(context.getLineNumber())
                         .errorMessage("El cliente con este número de identificación ya existe")
                         .errorType(FileProcessingConstants.ErrorType.DUPLICATE_CLIENT.getValue())
-                        .fileName(fileName)
-                        .processingDate(processingDate)
+                        .fileName(context.getFileName())
+                        .processingDate(context.getProcessingDate())
                         .build();
-                errorRepository.saveAll(Arrays.asList(error));
-                return false;
+                errors.add(error);
+                hasErrors = true;
             }
 
-            Optional<DatabookResponseDto> databookData = databookService.getClientInfo(idType, idNumber);
-
+            // Consultar databook
+            Optional<DatabookResponseDto> databookData = databookService.getClientInfo(context.getIdType(), context.getIdNumber());
+            
             if (databookData.isEmpty()) {
                 BulkLoadError error = BulkLoadError.builder()
-                        .processId(processId)
-                        .idType(idType)
-                        .idNumber(idNumber)
-                        .lineNumber(lineNumber)
+                        .processId(context.getProcessId())
+                        .idType(context.getIdType())
+                        .idNumber(context.getIdNumber())
+                        .lineNumber(context.getLineNumber())
                         .errorMessage("Cliente no encontrado en el servicio externo (Databook)")
                         .errorType(FileProcessingConstants.ErrorType.NOT_FOUND_IN_DATABOOK.getValue())
-                        .fileName(fileName)
-                        .processingDate(processingDate)
+                        .fileName(context.getFileName())
+                        .processingDate(context.getProcessingDate())
+                        .build();
+                errors.add(error);
+                hasErrors = true;
+            }
+
+            // Si hay errores críticos, registrarlos y retornar false
+            if (hasErrors) {
+                errorRepository.saveAll(errors);
+                return false;
+            }
+
+            // Crear cliente
+            String clientCode = clientFactory.generateUniqueClientCode();
+            if (clientCode == null) {
+                BulkLoadError error = BulkLoadError.builder()
+                        .processId(context.getProcessId())
+                        .clientCode(context.getIdNumber())
+                        .idType(context.getIdType())
+                        .idNumber(context.getIdNumber())
+                        .lineNumber(context.getLineNumber())
+                        .errorMessage("No se pudo generar un código de cliente único después de múltiples intentos")
+                        .errorType(FileProcessingConstants.ErrorType.SYSTEM_ERROR.getValue())
+                        .fileName(context.getFileName())
+                        .processingDate(context.getProcessingDate())
                         .build();
                 errorRepository.saveAll(Arrays.asList(error));
                 return false;
             }
-
+            
             Client client = Client.builder()
-                    .clientCode(clientFactory.generateUniqueClientCode())
-                    .idType(idType)
-                    .idNumber(idNumber)
+                    .clientCode(clientCode)
+                    .idType(context.getIdType())
+                    .idNumber(context.getIdNumber())
                     .firstNames(databookData.get().getFirstNames())
                     .lastNames(databookData.get().getLastNames())
                     .birthDate(LocalDate.parse(databookData.get().getBirthDate(), DATE_FORMATTER))
-                    .joinDate(LocalDate.parse(joinDate, DATE_FORMATTER))
-                    .email(email)
-                    .phoneNumber(phoneNumber)
-                    .processId(processId)
+                    .joinDate(LocalDate.parse(context.getJoinDate(), DATE_FORMATTER))
+                    .email(context.getEmail())
+                    .phoneNumber(context.getPhoneNumber())
+                    .processId(context.getProcessId())
                     .build();
-
-            // Validar que el clientCode fue generado correctamente
-            if (client.getClientCode() == null) {
-                BulkLoadError error = BulkLoadError.builder()
-                        .processId(processId)
-                        .clientCode(idNumber)
-                        .idType(idType)
-                        .idNumber(idNumber)
-                        .lineNumber(lineNumber)
-                        .errorMessage("No se pudo generar un código de cliente único después de múltiples intentos")
-                        .errorType(FileProcessingConstants.ErrorType.SYSTEM_ERROR.getValue())
-                        .fileName(fileName)
-                        .processingDate(processingDate)
-                        .build();
-                errorRepository.saveAll(Arrays.asList(error));
-                return false;
-            }
 
             Client savedClient = clientRepository.save(client);
 
             String accountNumber = accountFactory.generateUniqueAccountNumber();
-            
-            if (accountNumber == null) {
-                BulkLoadError error = BulkLoadError.builder()
-                        .processId(processId)
-                        .clientCode(client.getClientCode())
-                        .idType(idType)
-                        .idNumber(idNumber)
-                        .lineNumber(lineNumber)
-                        .errorMessage("No se pudo generar un número de cuenta único después de múltiples intentos")
-                        .errorType(FileProcessingConstants.ErrorType.SYSTEM_ERROR.getValue())
-                        .fileName(fileName)
-                        .processingDate(processingDate)
-                        .build();
-                errorRepository.saveAll(Arrays.asList(error));
-                return false;
-            }
 
             Account account = Account.builder()
                     .accountNumber(accountNumber)
                     .clientId(savedClient.getId())
-                    .payrollValue(new BigDecimal(payrollValue))
+                    .payrollValue(new BigDecimal(context.getPayrollValue()))
                     .status(FileProcessingConstants.DEFAULT_ACCOUNT_STATUS)
                     .build();
-            accountRepository.save(account);
+            Account savedAccount = accountRepository.save(account);
+            
+            PayrollPayment initialPayment = PayrollPayment.builder()
+                    .accountId(savedAccount.getId())
+                    .paymentDate(LocalDate.parse(context.getJoinDate(), DATE_FORMATTER))
+                    .amount(new BigDecimal(context.getPayrollValue()))
+                    .status("PENDING")
+                    .build();
+            paymentRepository.save(initialPayment);
 
             return true;
         } catch (Exception e) {
             String sanitizedMessage = e.getMessage() != null ? 
                 e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
-            log.error("Error procesando cliente en fila {}: {}", lineNumber, sanitizedMessage);
+            log.error("Error procesando cliente en fila {}: {}", context.getLineNumber(), sanitizedMessage);
             
             BulkLoadError error = BulkLoadError.builder()
-                    .processId(processId)
-                    .idType(idType)
-                    .idNumber(idNumber)
-                    .lineNumber(lineNumber)
+                    .processId(context.getProcessId())
+                    .idType(context.getIdType())
+                    .idNumber(context.getIdNumber())
+                    .lineNumber(context.getLineNumber())
                     .errorMessage("Error al procesar: " + sanitizedMessage)
                     .errorType("PROCESSING_ERROR")
-                    .fileName(fileName)
-                    .processingDate(processingDate)
+                    .fileName(context.getFileName())
+                    .processingDate(context.getProcessingDate())
                     .build();
             errorRepository.saveAll(Arrays.asList(error));
             return false;
@@ -326,33 +329,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                 .build();
     }
 
-    private BulkLoadError validateHeaders(String headerLine, String fileName, LocalDateTime processingDate, String processId) {
-        if (headerLine == null || headerLine.trim().isEmpty()) {
-            return BulkLoadError.builder()
-                    .processId(processId)
-                    .lineNumber(0)
-                    .errorMessage("El archivo no contiene encabezados válidos")
-                    .errorType(FileProcessingConstants.ErrorType.INVALID_FORMAT.getValue())
-                    .fileName(fileName)
-                    .processingDate(processingDate)
-                    .build();
-        }
-        return null;
-    }
-
-    private String appendTimestampToFileName(String originalFileName, LocalDateTime dateTime) {
-        String sanitizedFileName = originalFileName != null ? 
-            originalFileName.replaceAll("[\r\n\t]", "_") : "unknown";
-        String timestamp = dateTime.format(DateTimeFormatter.ofPattern("ddMMyyyyHH:mm:ss"));
-
-        if (sanitizedFileName.contains(".")) {
-            int lastDotIndex = sanitizedFileName.lastIndexOf(".");
-            String nameWithoutExtension = sanitizedFileName.substring(0, lastDotIndex);
-            String extension = sanitizedFileName.substring(lastDotIndex);
-            return nameWithoutExtension + "_" + timestamp + extension;
-        } else {
-            return sanitizedFileName + "_" + timestamp + ".txt";
-        }
-    }
+   
 }
+
 

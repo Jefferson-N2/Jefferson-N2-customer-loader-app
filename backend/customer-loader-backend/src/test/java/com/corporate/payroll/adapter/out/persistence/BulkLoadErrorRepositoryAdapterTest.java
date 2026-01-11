@@ -7,7 +7,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -71,42 +70,28 @@ class BulkLoadErrorRepositoryAdapterTest {
     }
 
     @Test
-    void testFindByFileNameReturnsMappedList() {
+    void testFindByProcessIdReturnsMappedList() {
         when(entityManager.createQuery(anyString(), eq(BulkLoadErrorEntity.class))).thenReturn(queryMock);
-        when(queryMock.setParameter(eq("fileName"), anyString())).thenReturn(queryMock);
+        when(queryMock.setParameter(eq("processId"), anyString())).thenReturn(queryMock);
+        when(queryMock.getResultList()).thenReturn(List.of(errorEntity));
+        when(errorMapper.toModel(errorEntity)).thenReturn(errorDomain);
+
+        List<BulkLoadError> result = repositoryAdapter.findByProcessId("PROC123");
+
+        assertEquals(1, result.size());
+        assertEquals("CLI001", result.get(0).getClientCode());
+    }
+
+    @Test
+    void testFindByProcessIdWithPaginationReturnsMappedList() {
+        when(entityManager.createQuery(anyString(), eq(BulkLoadErrorEntity.class))).thenReturn(queryMock);
+        when(queryMock.setParameter(eq("processId"), anyString())).thenReturn(queryMock);
         when(queryMock.setFirstResult(anyInt())).thenReturn(queryMock);
         when(queryMock.setMaxResults(anyInt())).thenReturn(queryMock);
         when(queryMock.getResultList()).thenReturn(List.of(errorEntity));
         when(errorMapper.toModel(errorEntity)).thenReturn(errorDomain);
 
-        List<BulkLoadError> result = repositoryAdapter.findByFileName("test.csv", 0, 10);
-
-        assertEquals(1, result.size());
-        assertEquals("CLI001", result.getFirst().getClientCode());
-    }
-
-    @Test
-    void testFindByClientCodeReturnsMappedList() {
-        when(entityManager.createQuery(anyString(), eq(BulkLoadErrorEntity.class))).thenReturn(queryMock);
-        when(queryMock.setParameter(eq("clientCode"), anyString())).thenReturn(queryMock);
-        when(queryMock.getResultList()).thenReturn(List.of(errorEntity));
-        when(errorMapper.toModel(errorEntity)).thenReturn(errorDomain);
-
-        List<BulkLoadError> result = repositoryAdapter.findByClientCode("CLI001");
-
-        assertEquals(1, result.size());
-        assertEquals("PROC123", result.getFirst().getProcessId());
-    }
-
-    @Test
-    void testFindByClientCodeAndProcessIdReturnsMappedList() {
-        when(entityManager.createQuery(anyString(), eq(BulkLoadErrorEntity.class))).thenReturn(queryMock);
-        when(queryMock.setParameter(eq("processId"), anyString())).thenReturn(queryMock);
-        when(queryMock.setParameter(eq("clientCode"), anyString())).thenReturn(queryMock);
-        when(queryMock.getResultList()).thenReturn(List.of(errorEntity));
-        when(errorMapper.toModel(errorEntity)).thenReturn(errorDomain);
-
-        List<BulkLoadError> result = repositoryAdapter.findByClientCodeAndProcessId("PROC123", "CLI001");
+        List<BulkLoadError> result = repositoryAdapter.findByProcessId("PROC123", 0, 10);
 
         assertEquals(1, result.size());
         assertEquals("test.csv", result.get(0).getFileName());

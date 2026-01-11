@@ -29,19 +29,24 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
 
     @Override
     @Transactional
-    public void save(Account account) {
+    public Account save(Account account) {
         AccountEntity entity = accountMapper.toDomainEntity(account);
 
-        Optional.ofNullable(entity.getId())
-                .ifPresentOrElse(id -> entityManager.merge(entity),
-                        () -> entityManager.persist(entity));
-
+        if (entity.getId() != null) {
+            entity = entityManager.merge(entity);
+        } else {
+            entityManager.persist(entity);
+        }
+        entityManager.flush();
+        
+        return accountMapper.toModel(entity);
     }
 
     @Override
     public Optional<Account> findByClientId(Long clientId) {
         List<AccountEntity> entities = entityManager.createQuery(
-                        "SELECT a FROM AccountEntity a WHERE a.clientId = :clientId", AccountEntity.class)
+                        "SELECT a FROM AccountEntity a " +
+                                "WHERE a.client.id = :clientId", AccountEntity.class)
                 .setParameter("clientId", clientId)
                 .getResultList();
         return entities.stream()
@@ -52,7 +57,8 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
     @Override
     public boolean existsByAccountNumber(String accountNumber) {
         Long count = entityManager.createQuery(
-                        "SELECT COUNT(a) FROM AccountEntity a WHERE a.accountNumber = :accountNumber", Long.class)
+                        "SELECT COUNT(a) FROM AccountEntity a " +
+                                "WHERE a.accountNumber = :accountNumber", Long.class)
                 .setParameter("accountNumber", accountNumber)
                 .getSingleResult();
         return count > 0;
@@ -60,7 +66,22 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
 
     @Override
     public Optional<Account> findByAccountNumber(String accountNumber) {
-        AccountEntity entity = entityManager.find(AccountEntity.class, accountNumber);
-        return Optional.ofNullable(entity).map(accountMapper::toModel);
+        List<AccountEntity> entities = entityManager.createQuery(
+                        "SELECT a FROM AccountEntity a " +
+                                "WHERE a.accountNumber = :accountNumber", AccountEntity.class)
+                .setParameter("accountNumber", accountNumber)
+                .getResultList();
+        return entities.stream()
+                .map(accountMapper::toModel)
+                .findFirst();
     }
+
+    @Override
+    public Long getLastAccountNumber() {
+            String lastAccountNumber = entityManager.createQuery(
+                            "SELECT a.accountNumber FROM AccountEntity a ORDER BY CAST(a.accountNumber AS long) DESC", String.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            return Long.parseLong(lastAccountNumber);
+            }
 }

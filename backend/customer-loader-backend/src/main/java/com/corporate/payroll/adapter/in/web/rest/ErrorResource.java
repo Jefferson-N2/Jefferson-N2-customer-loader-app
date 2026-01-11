@@ -1,8 +1,6 @@
 package com.corporate.payroll.adapter.in.web.rest;
 
-import com.corporate.payroll.application.port.in.web.rest.api.ErrorApiInputPort;
-import com.corporate.payroll.application.port.in.BulkLoadQueryPort;
-import com.corporate.payroll.adapter.in.web.dto.ClientErrorsResponseDto;
+import com.corporate.payroll.application.port.out.BulkLoadErrorRepositoryPort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -13,31 +11,32 @@ import jakarta.ws.rs.core.Response;
  * Recurso REST para consultas de errores de carga masiva
  * 
  * Endpoints:
- * - GET /bulk-load/clients/{processId}/clients/{clientCode}/errors: Errores de un cliente
+ * - GET /errors/{processId}: Errores de un proceso específico
  */
 @ApplicationScoped
-@Path("/bulk-load/clients/{processId}/clients/{clientCode}/errors")
-public class ErrorResource implements ErrorApiInputPort {
+@Path("/errors")
+public class ErrorResource {
 
     @Inject
-    private BulkLoadQueryPort bulkLoadQueryPort;
+    private BulkLoadErrorRepositoryPort errorRepository;
 
     /**
-     * GET /bulk-load/clients/{processId}/clients/{clientCode}/errors
-     * Obtiene los errores asociados a un cliente específico dentro de un proceso
+     * GET /errors/{processId}
+     * Obtiene los errores de un proceso específico
      * 
      * @param processId ID del proceso de carga
-     * @param clientCode código del cliente
-     * @return Lista de errores del cliente
+     * @param page número de página
+     * @param size tamaño de página
+     * @return Lista de errores del proceso
      */
     @GET
+    @Path("/{processId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Override
-    public Response getClientErrors(
+    public Response getProcessErrors(
             @PathParam("processId") String processId,
-            @PathParam("clientCode") String clientCode) {
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("50") int size) {
         
-        ClientErrorsResponseDto response = bulkLoadQueryPort.getClientErrors(processId, clientCode);
-        return Response.ok(response).build();
+        return Response.ok(errorRepository.findByProcessId(processId, page, size)).build();
     }
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class AccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
+    @ToString.Exclude
     private ClientEntity client;
 
     @Column(name = "payroll_value", precision = 19, scale = 2)
@@ -34,6 +36,7 @@ public class AccountEntity {
     private String status;
 
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<PayrollPaymentEntity> payments;
 
 }

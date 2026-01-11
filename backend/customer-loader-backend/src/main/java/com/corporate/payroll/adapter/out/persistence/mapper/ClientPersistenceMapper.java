@@ -5,32 +5,12 @@ import com.corporate.payroll.adapter.out.persistence.entity.ClientEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "cdi", uses = {AccountPersistenceMapper.class})
+@Mapper(componentModel = "cdi")
 public interface ClientPersistenceMapper {
     
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "clientCode", target = "clientCode")
-    @Mapping(source = "idType", target = "idType")
-    @Mapping(source = "idNumber", target = "idNumber")
-    @Mapping(source = "firstNames", target = "firstNames")
-    @Mapping(source = "lastNames", target = "lastNames")
-    @Mapping(source = "birthDate", target = "birthDate")
-    @Mapping(source = "joinDate", target = "joinDate")
-    @Mapping(source = "email", target = "email")
-    @Mapping(source = "phoneNumber", target = "phoneNumber")
     @Mapping(target = "accounts", ignore = true)
     ClientEntity toDomainEntity(Client client);
     
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "clientCode", target = "clientCode")
-    @Mapping(source = "idType", target = "idType")
-    @Mapping(source = "idNumber", target = "idNumber")
-    @Mapping(source = "firstNames", target = "firstNames")
-    @Mapping(source = "lastNames", target = "lastNames")
-    @Mapping(source = "birthDate", target = "birthDate")
-    @Mapping(source = "joinDate", target = "joinDate")
-    @Mapping(source = "email", target = "email")
-    @Mapping(source = "phoneNumber", target = "phoneNumber")
-    @Mapping(source = "accounts", target = "accounts")
+    @Mapping(target = "accounts", ignore = true)
     Client toModel(ClientEntity clientEntity);
 }

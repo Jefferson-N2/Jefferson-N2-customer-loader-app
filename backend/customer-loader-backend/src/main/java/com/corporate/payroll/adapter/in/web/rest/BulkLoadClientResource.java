@@ -23,9 +23,9 @@ public class BulkLoadClientResource implements BulkLoadApiInputPort {
     /**
      * POST /bulk-load/clients
      * Procesa un archivo de carga masiva de clientes en línea
-     * 
+     *
      * @param inputStream stream del archivo
-     * @param fileName nombre del archivo
+     * @param fileName    nombre del archivo
      * @return Respuesta con processId, status y estadísticas
      */
     @POST
@@ -35,8 +35,7 @@ public class BulkLoadClientResource implements BulkLoadApiInputPort {
     public Response uploadClients(
             InputStream inputStream,
             @QueryParam("fileName") String fileName) {
-        
-       
+
         fileName = SecurityValidationInterceptor.sanitizeFileName(fileName);
         
         BulkLoadStatisticsResponseDto stats = bulkLoadUseCase.processBulkLoad(inputStream, fileName);

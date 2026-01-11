@@ -37,7 +37,7 @@ CREATE TABLE clients (
     phone_number VARCHAR(20),
     process_id VARCHAR(36),
     created_at TIMESTAMP DEFAULT now(),
-    FOREIGN KEY (process_id) REFERENCES bulk_load_processes(process_id) ON DELETE CASCADE,
+    FOREIGN KEY (process_id) REFERENCES bulk_load_processes(process_id) ON DELETE SET NULL,
     INDEX idx_process_id (process_id),
     INDEX idx_client_code (client_code),
     INDEX idx_id_number (id_number)

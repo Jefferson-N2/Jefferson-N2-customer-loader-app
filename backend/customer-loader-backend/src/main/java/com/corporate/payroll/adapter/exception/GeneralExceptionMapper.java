@@ -14,8 +14,8 @@ public class GeneralExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
         ErrorResponse errorResponse = ErrorResponse.builder()
-            .message("Error interno del servidor, POR FAVOR CONTACTE CON EL ADMINISTRADOR: "
-                    + exception.getMessage())
+            .message("Error interno del servidor, por favor contacte con el administrador "
+                    )
             .errorCode("INTERNAL_SERVER_ERROR")
             .timestamp(System.currentTimeMillis())
             .build();

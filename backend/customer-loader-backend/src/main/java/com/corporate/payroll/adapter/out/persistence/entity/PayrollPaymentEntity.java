@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 
@@ -22,6 +23,7 @@ public class PayrollPaymentEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @ToString.Exclude
     private AccountEntity account;
 
     @Column(name = "payment_date")

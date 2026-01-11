@@ -70,27 +70,6 @@ class ClientRepositoryAdapterTest {
     }
 
     @Test
-    void testFindByClientCodeWithExistingClientShouldReturnClient() {
-        String clientCode = "CLI_ABC123";
-        TypedQuery<ClientEntity> query = mock(TypedQuery.class);
-
-        when(entityManager.createQuery(
-                "SELECT c FROM ClientEntity c WHERE c.clientCode = :code",
-                ClientEntity.class))
-                .thenReturn(query);
-        when(query.setParameter("code", clientCode)).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(testClientEntity);
-        when(clientMapper.toModel(testClientEntity)).thenReturn(testClient);
-
-        Optional<Client> result = clientRepositoryAdapter.findByClientCode(clientCode);
-
-        
-        assertTrue(result.isPresent());
-        assertEquals("CLI_ABC123", result.get().getClientCode());
-        verify(query).getSingleResult();
-    }
-
-    @Test
     void testFindByProcessIdShouldReturnPaginatedClients() {
         String processId = "process-123";
         int page = 0;

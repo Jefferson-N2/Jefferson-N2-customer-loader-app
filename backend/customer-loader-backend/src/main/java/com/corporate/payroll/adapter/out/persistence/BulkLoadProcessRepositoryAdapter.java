@@ -1,9 +1,11 @@
 package com.corporate.payroll.adapter.out.persistence;
 
 import com.corporate.payroll.adapter.out.persistence.entity.BulkLoadProcessEntity;
+import com.corporate.payroll.adapter.out.persistence.mapper.BulkLoadProcessPersistenceMapper;
 import com.corporate.payroll.application.port.out.BulkLoadProcessRepositoryPort;
 import com.corporate.payroll.domain.model.BulkLoadProcess;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -17,22 +19,15 @@ public class BulkLoadProcessRepositoryAdapter implements BulkLoadProcessReposito
     @PersistenceContext
     private EntityManager entityManager;
     
+    @Inject
+    private BulkLoadProcessPersistenceMapper mapper;
+    
     @Override
     public BulkLoadProcess save(BulkLoadProcess bulkLoadProcess) {
-        BulkLoadProcessEntity entity = BulkLoadProcessEntity.builder()
-            .processId(bulkLoadProcess.getProcessId())
-            .fileName(bulkLoadProcess.getFileName())
-            .status(bulkLoadProcess.getStatus())
-            .totalRecords(bulkLoadProcess.getTotalRecords())
-            .successfulCount(bulkLoadProcess.getSuccessfulCount())
-            .errorCount(bulkLoadProcess.getErrorCount())
-            .processingDate(bulkLoadProcess.getProcessingDate())
-            .build();
-        
+        BulkLoadProcessEntity entity = mapper.toDomainEntity(bulkLoadProcess);
         entityManager.persist(entity);
         entityManager.flush();
-        
-        return toDomain(entity);
+        return mapper.toModel(entity);
     }
     
     @Override
@@ -44,38 +39,20 @@ public class BulkLoadProcessRepositoryAdapter implements BulkLoadProcessReposito
             .findFirst()
             .orElse(null);
         
-        return entity != null ? Optional.of(toDomain(entity)) : Optional.empty();
+        return entity != null ? Optional.of(mapper.toModel(entity)) : Optional.empty();
     }
     
     @Override
     public BulkLoadProcess update(BulkLoadProcess bulkLoadProcess) {
-        BulkLoadProcessEntity entity = entityManager.find(BulkLoadProcessEntity.class, bulkLoadProcess.getId());
+        Optional<BulkLoadProcess> existing = findByProcessId(bulkLoadProcess.getProcessId());
         
-        if (entity != null) {
-            entity.setStatus(bulkLoadProcess.getStatus());
-            entity.setSuccessfulCount(bulkLoadProcess.getSuccessfulCount());
-            entity.setErrorCount(bulkLoadProcess.getErrorCount());
-            entity.setTotalRecords(bulkLoadProcess.getTotalRecords());
-            
-            entityManager.merge(entity);
-            entityManager.flush();
+        if (existing.isPresent()) {
+            bulkLoadProcess.setId(existing.get().getId());
         }
         
-        return bulkLoadProcess;
-    }
-    
-    private BulkLoadProcess toDomain(BulkLoadProcessEntity entity) {
-        return BulkLoadProcess.builder()
-            .id(entity.getId())
-            .processId(entity.getProcessId())
-            .fileName(entity.getFileName())
-            .status(entity.getStatus())
-            .totalRecords(entity.getTotalRecords())
-            .successfulCount(entity.getSuccessfulCount())
-            .errorCount(entity.getErrorCount())
-            .processingDate(entity.getProcessingDate())
-            .createdAt(entity.getCreatedAt())
-            .updatedAt(entity.getUpdatedAt())
-            .build();
+        BulkLoadProcessEntity entity = mapper.toDomainEntity(bulkLoadProcess);
+        entity = entityManager.merge(entity);
+        entityManager.flush();
+        return mapper.toModel(entity);
     }
 }

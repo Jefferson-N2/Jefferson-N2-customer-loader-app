@@ -30,35 +30,29 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
     @Inject
     private BulkLoadErrorPersistenceMapper errorMapper;
 
-    @Transactional
     @Override
     public void saveAll(List<BulkLoadError> errors) {
         log.info("Iniciando persistencia de {} errores de carga", errors.size());
-        try {
-            for (BulkLoadError error : errors) {
-                BulkLoadErrorEntity entity = errorMapper.toDomainEntity(error);
-                entityManager.persist(entity);
-                entityManager.flush();
-                entityManager.clear();
-            }
-            log.info("Persistencia completada: {} errores guardados", errors.size());
-        } catch (Exception e) {
-            log.error("Error al persistir errores: {}", e.getMessage(), e);
-            throw e;
+        for (BulkLoadError error : errors) {
+            BulkLoadErrorEntity entity = errorMapper.toDomainEntity(error);
+            entityManager.persist(entity);
+            entityManager.flush();
+            entityManager.clear();
         }
+        log.info("Persistencia completada: {} errores guardados", errors.size());
     }
 
     @Override
-    public List<BulkLoadError> findByFileName(String fileName, long offset, int limit) {
+    public List<BulkLoadError> findByProcessId(String processId) {
+        log.debug("Buscando errores para proceso: {}", processId);
         List<BulkLoadErrorEntity> entities = entityManager.createQuery(
-                        "SELECT e FROM BulkLoadErrorEntity e WHERE e.fileName = :fileName " +
-                                "ORDER BY e.processingDate DESC, e.lineNumber ASC",
-                        BulkLoadErrorEntity.class
-                )
-                .setParameter("fileName", fileName)
-                .setFirstResult((int) offset)
-                .setMaxResults(limit)
+                        "SELECT e FROM BulkLoadErrorEntity e WHERE e.processId = :processId " +
+                                "ORDER BY e.lineNumber ASC",
+                        BulkLoadErrorEntity.class)
+                .setParameter("processId", processId)
                 .getResultList();
+
+        log.info("Se encontraron {} errores para proceso {}", entities.size(), processId);
 
         return entities.stream()
                 .map(errorMapper::toModel)
@@ -66,52 +60,21 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
     }
 
     @Override
-    public List<BulkLoadError> findByClientCode(String clientCode) {
-        log.debug("Buscando errores para cliente: {}", clientCode);
-        try {
-            List<BulkLoadErrorEntity> entities = entityManager.createQuery(
-                            "SELECT e FROM BulkLoadErrorEntity e WHERE e.clientCode = :clientCode " +
-                                    "ORDER BY e.processingDate DESC, e.lineNumber ASC",
-                            BulkLoadErrorEntity.class)
-                    .setParameter("clientCode", clientCode)
-                    .getResultList();
+    public List<BulkLoadError> findByProcessId(String processId, int page, int size) {
+        log.debug("Buscando errores para proceso: {} (página: {}, tamaño: {})", processId, page, size);
+        List<BulkLoadErrorEntity> entities = entityManager.createQuery(
+                        "SELECT e FROM BulkLoadErrorEntity e WHERE e.processId = :processId " +
+                                "ORDER BY e.lineNumber ASC",
+                        BulkLoadErrorEntity.class)
+                .setParameter("processId", processId)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
 
-            log.info("Se encontraron {} errores para cliente {}",
-                    entities.size(), clientCode);
+        log.info("Se encontraron {} errores para proceso {} (página {})", entities.size(), processId, page);
 
-            return entities.stream()
-                    .map(errorMapper::toModel)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error al buscar errores para cliente {}: {}",
-                    clientCode, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    @Override
-    public List<BulkLoadError> findByClientCodeAndProcessId(String processId, String clientCode) {
-        log.debug("Buscando errores para cliente: {} en proceso: {}", clientCode, processId);
-        try {
-            List<BulkLoadErrorEntity> entities = entityManager.createQuery(
-                            "SELECT e FROM BulkLoadErrorEntity e WHERE e.processId = :processId " +
-                                    "AND e.clientCode = :clientCode " +
-                                    "ORDER BY e.processingDate DESC, e.lineNumber ASC",
-                            BulkLoadErrorEntity.class)
-                    .setParameter("processId", processId)
-                    .setParameter("clientCode", clientCode)
-                    .getResultList();
-
-            log.info("Se encontraron {} errores para cliente {} en proceso {}",
-                    entities.size(), clientCode, processId);
-
-            return entities.stream()
-                    .map(errorMapper::toModel)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error al buscar errores para cliente {} en proceso {}: {}",
-                    clientCode, processId, e.getMessage(), e);
-            throw e;
-        }
+        return entities.stream()
+                .map(errorMapper::toModel)
+                .collect(Collectors.toList());
     }
 }

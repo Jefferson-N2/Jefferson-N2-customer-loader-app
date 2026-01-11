@@ -8,7 +8,7 @@ public interface AccountRepositoryPort {
     /**
      * Guarda una cuenta en la base de datos
      */
-    void save(Account account);
+    Account save(Account account);
     
     /**
      * Verifica si existe una cuenta con el número especificado.
@@ -25,4 +25,9 @@ public interface AccountRepositoryPort {
      * Obtiene la cuenta de un cliente por ID de cliente
      */
     Optional<Account> findByClientId(Long clientId);
+    
+    /**
+     * Obtiene el último número de cuenta usado para generar secuencia
+     */
+    Long getLastAccountNumber();
 }

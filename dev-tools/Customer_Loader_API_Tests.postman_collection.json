@@ -1,14 +1,14 @@
 {
 	"info": {
-		"_postman_id": "customer-loader-api-tests",
-		"name": "Customer Loader API - Test Collection",
-		"description": "Colección completa para probar todos los endpoints del sistema de carga masiva de clientes",
+		"_postman_id": "customer-loader-api-v2",
+		"name": "Customer Loader API - Complete Collection",
+		"description": "Colección completa validada para el sistema de carga masiva de clientes. C=Persona Jurídica/Compañía, P=Persona Natural",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:8080/customer-bulk-loader",
+			"value": "http://localhost:8080/customer-loader-backend/api",
 			"type": "string"
 		},
 		{
@@ -20,19 +20,38 @@
 			"key": "clientCode",
 			"value": "",
 			"type": "string"
-		},
-		{
-			"key": "accountNumber",
-			"value": "",
-			"type": "string"
 		}
 	],
 	"item": [
 		{
-			"name": "Health Checks",
+			"name": "1. Health Checks",
 			"item": [
 				{
 					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 503', function () {",
+									"    pm.expect([200, 503]).to.include(pm.response.code);",
+									"});",
+									"",
+									"pm.test('Response has status field', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.exist;",
+									"    pm.expect(['UP', 'DOWN']).to.include(jsonData.status);",
+									"});",
+									"",
+									"pm.test('Response has checks object', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.checks).to.exist;",
+									"    pm.expect(jsonData.checks.database).to.exist;",
+									"});"
+								]
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -43,40 +62,14 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Readiness Check",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health/ready",
-							"host": ["{{baseUrl}}"],
-							"path": ["health", "ready"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Liveness Check",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/health/live",
-							"host": ["{{baseUrl}}"],
-							"path": ["health", "live"]
-						}
-					},
-					"response": []
 				}
 			]
 		},
 		{
-			"name": "Bulk Load - Casos Válidos",
+			"name": "2. Bulk Load - Casos Válidos",
 			"item": [
 				{
-					"name": "Cargar Archivo Válido",
+					"name": "Cargar Archivo Válido - Casos Exitosos",
 					"event": [
 						{
 							"listen": "test",
@@ -92,9 +85,11 @@
 									"    pm.collectionVariables.set('processId', jsonData.processId);",
 									"});",
 									"",
-									"pm.test('Status is COMPLETED', function () {",
+									"pm.test('Response has success and error counts', function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.status).to.eql('COMPLETED');",
+									"    pm.expect(jsonData.successfulCount).to.exist;",
+									"    pm.expect(jsonData.errorCount).to.exist;",
+									"    pm.expect(jsonData.message).to.exist;",
 									"});"
 								]
 							}
@@ -110,7 +105,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|2024-01-15|50000.00|juan.perez@empresa.com|3125551234\nP|AB123456|2024-02-01|75000.50|maria.garcia@empresa.com|3185559876"
+							"raw": "C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845\nP,A123,2026-01-07,700,jose123@gmail.com,0954887842"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/bulk-load/clients?fileName=clientes_validos.txt",
@@ -125,9 +120,38 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "3. Bulk Load - Casos con Errores",
+			"item": [
 				{
-					"name": "Cargar Archivo con Pasaportes",
+					"name": "Archivo Mixto - Exitosos y Errores",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has processId', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.processId).to.exist;",
+									"    pm.collectionVariables.set('processId', jsonData.processId);",
+									"});",
+									"",
+									"pm.test('Response has both success and errors', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.successfulCount).to.be.greaterThan(0);",
+									"    pm.expect(jsonData.errorCount).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -138,27 +162,22 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nP|XY987654|2024-03-01|60000.00|carlos.lopez@empresa.com|3001234567\nP|ZW456789|2024-03-15|55000.00|ana.martinez@empresa.com|3209876543"
+							"raw": "C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845\nP,A123,2026-01-07,700,jose123@gmail.com,0954887842\nX,12345678,2024-01-15,50000.00,test@email.com,3125551234\nC,,2024-01-15,50000.00,test2@email.com,3125551235\nP,ABC123,invalid-date,700,invalid-email,0954887843"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=pasaportes_validos.txt",
+							"raw": "{{baseUrl}}/bulk-load/clients?fileName=archivo_mixto.txt",
 							"host": ["{{baseUrl}}"],
 							"path": ["bulk-load", "clients"],
 							"query": [
 								{
 									"key": "fileName",
-									"value": "pasaportes_validos.txt"
+									"value": "archivo_mixto.txt"
 								}
 							]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Bulk Load - Casos de Error",
-			"item": [
+				},
 				{
 					"name": "Archivo sin Nombre",
 					"event": [
@@ -183,7 +202,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "C|12345678|2024-01-15|50000.00|test@email.com|3125551234"
+							"raw": "C,12345678,2024-01-15,50000.00,test@email.com,3125551234"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/bulk-load/clients",
@@ -192,182 +211,96 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Tipos de ID Inválidos",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nX|12345678|2024-01-15|50000.00|test@email.com|3125551234\nV|87654321|2024-02-01|60000.00|test2@email.com|3185559876\nE|11223344|2024-03-01|45000.00|test3@email.com|3001234567"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=tipos_id_invalidos.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "tipos_id_invalidos.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Fechas Inválidas",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|15/01/2024|50000.00|test@email.com|3125551234\nC|87654321|2024-13-01|60000.00|test2@email.com|3185559876\nC|11223344|2024-02-30|45000.00|test3@email.com|3001234567"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=fechas_invalidas.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "fechas_invalidas.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Emails Inválidos",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|2024-01-15|50000.00|email-invalido|3125551234\nC|87654321|2024-02-01|60000.00|@domain.com|3185559876\nC|11223344|2024-03-01|45000.00|user@|3001234567"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=emails_invalidos.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "emails_invalidos.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Teléfonos Inválidos",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|2024-01-15|50000.00|test@email.com|123\nC|87654321|2024-02-01|60000.00|test2@email.com|12345678901\nC|11223344|2024-03-01|45000.00|test3@email.com|312-555-1234"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=telefonos_invalidos.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "telefonos_invalidos.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Valores de Nómina Inválidos",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|2024-01-15|cincuenta mil|test@email.com|3125551234\nC|87654321|2024-02-01|$60000|test2@email.com|3185559876\nC|11223344|2024-03-01|texto|test3@email.com|3001234567"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=nomina_invalida.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "nomina_invalida.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Archivo Incompleto",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|12345678|2024-01-15\nC|87654321|2024-02-01|60000.00\nC|11223344"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=archivo_incompleto.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "archivo_incompleto.txt"
-								}
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
 		{
-			"name": "Consultas de Clientes",
+			"name": "4. Consultas de Procesos",
 			"item": [
 				{
-					"name": "Listar Clientes por Proceso",
+					"name": "Detalle de Proceso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has process details', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.processId).to.exist;",
+									"    pm.expect(jsonData.status).to.exist;",
+									"    pm.expect(jsonData.fileName).to.exist;",
+									"    pm.expect(jsonData.successfulCount).to.exist;",
+									"    pm.expect(jsonData.errorCount).to.exist;",
+									"});",
+									"",
+									"pm.test('Response has clients array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.clients).to.be.an('array');",
+									"    if (jsonData.clients.length > 0) {",
+									"        pm.collectionVariables.set('clientCode', jsonData.clients[0].clientCode);",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/processes/{{processId}}/details",
+							"host": ["{{baseUrl}}"],
+							"path": ["processes", "{{processId}}", "details"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Errores de Proceso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/processes/{{processId}}/errors?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["processes", "{{processId}}", "errors"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clientes de Proceso",
 					"event": [
 						{
 							"listen": "test",
@@ -380,10 +313,7 @@
 									"pm.test('Response has clients array', function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData.clients).to.be.an('array');",
-									"    if (jsonData.clients.length > 0) {",
-									"        pm.collectionVariables.set('clientCode', jsonData.clients[0].clientCode);",
-									"        pm.collectionVariables.set('accountNumber', jsonData.clients[0].account.accountNumber);",
-									"    }",
+									"    pm.expect(jsonData.processId).to.exist;",
 									"});"
 								]
 							}
@@ -393,9 +323,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients/{{processId}}/clients?page=0&size=20",
+							"raw": "{{baseUrl}}/processes/{{processId}}/clients?page=0&size=20",
 							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients", "{{processId}}", "clients"],
+							"path": ["processes", "{{processId}}", "clients"],
 							"query": [
 								{
 									"key": "page",
@@ -409,16 +339,50 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "5. Consultas de Clientes",
+			"item": [
 				{
-					"name": "Detalle de Cliente Específico",
+					"name": "Cliente por Código (con Pagos)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has client details', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.clientCode).to.exist;",
+									"    pm.expect(jsonData.idType).to.exist;",
+									"    pm.expect(jsonData.idNumber).to.exist;",
+									"    pm.expect(jsonData.email).to.exist;",
+									"});",
+									"",
+									"pm.test('Response has accounts with payments', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.accounts).to.be.an('array');",
+									"    if (jsonData.accounts.length > 0) {",
+									"        pm.expect(jsonData.accounts[0].accountNumber).to.exist;",
+									"        pm.expect(jsonData.accounts[0].payments).to.be.an('array');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients/{{processId}}/clients/{{clientCode}}",
+							"raw": "{{baseUrl}}/clients/code/{{clientCode}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients", "{{processId}}", "clients", "{{clientCode}}"]
+							"path": ["clients", "code", "{{clientCode}}"]
 						}
 					},
 					"response": []
@@ -432,6 +396,11 @@
 								"exec": [
 									"pm.test('Status code is 404', function () {",
 									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response has error message', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.exist;",
 									"});"
 								]
 							}
@@ -441,9 +410,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients/{{processId}}/clients/CLI-INEXISTENTE",
+							"raw": "{{baseUrl}}/clients/code/CLI-INEXISTENTE",
 							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients", "{{processId}}", "clients", "CLI-INEXISTENTE"]
+							"path": ["clients", "code", "CLI-INEXISTENTE"]
 						}
 					},
 					"response": []
@@ -451,35 +420,34 @@
 			]
 		},
 		{
-			"name": "Consultas de Errores",
+			"name": "6. Consultas de Errores",
 			"item": [
 				{
-					"name": "Errores por Cliente",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients/{{processId}}/clients/{{clientCode}}/errors",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients", "{{processId}}", "clients", "{{clientCode}}", "errors"]
+					"name": "Errores por Proceso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								]
+							}
 						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Consultas de Pagos",
-			"item": [
-				{
-					"name": "Historial de Pagos",
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/accounts/{{accountNumber}}/payments?page=0&size=20",
+							"raw": "{{baseUrl}}/errors/{{processId}}?page=0&size=50",
 							"host": ["{{baseUrl}}"],
-							"path": ["accounts", "{{accountNumber}}", "payments"],
+							"path": ["errors", "{{processId}}"],
 							"query": [
 								{
 									"key": "page",
@@ -487,116 +455,7 @@
 								},
 								{
 									"key": "size",
-									"value": "20"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Cuenta No Encontrada",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status code is 404', function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/accounts/ACC-INEXISTENTE/payments",
-							"host": ["{{baseUrl}}"],
-							"path": ["accounts", "ACC-INEXISTENTE", "payments"]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Casos Extremos",
-			"item": [
-				{
-					"name": "Archivo Muy Grande (Simulado)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|10000001|2024-01-15|50000.00|user1@empresa.com|3125551001\nC|10000002|2024-01-15|50000.00|user2@empresa.com|3125551002\nC|10000003|2024-01-15|50000.00|user3@empresa.com|3125551003\nC|10000004|2024-01-15|50000.00|user4@empresa.com|3125551004\nC|10000005|2024-01-15|50000.00|user5@empresa.com|3125551005"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=archivo_grande.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "archivo_grande.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Caracteres Especiales en Nombres",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "text/plain"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "Tipo ID|Numero ID|Fecha Ingreso|Valor Nomina|Email|Telefono\nC|20000001|2024-01-15|50000.00|jose.maria@empresa.com|3125551234\nP|AB20001|2024-02-01|75000.50|maría.josé@empresa.com|3185559876"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients?fileName=caracteres_especiales.txt",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients"],
-							"query": [
-								{
-									"key": "fileName",
-									"value": "caracteres_especiales.txt"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Paginación Límites",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/bulk-load/clients/{{processId}}/clients?page=999&size=1",
-							"host": ["{{baseUrl}}"],
-							"path": ["bulk-load", "clients", "{{processId}}", "clients"],
-							"query": [
-								{
-									"key": "page",
-									"value": "999"
-								},
-								{
-									"key": "size",
-									"value": "1"
+									"value": "50"
 								}
 							]
 						}
