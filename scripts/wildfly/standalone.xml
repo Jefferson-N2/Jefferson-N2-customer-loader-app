@@ -144,7 +144,7 @@
                 <datasource jndi-name="java:/jdbc/payrollDS" pool-name="PayrollDS" enabled="true"
                     use-java-context="true">
                     <connection-url>jdbc:mysql://${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}</connection-url>
-                    <driver>customer-bulk-loader.war_com.mysql.cj.jdbc.Driver_8_0</driver>
+                    <driver>customer-loader-backend.war_com.mysql.cj.jdbc.Driver_8_0</driver>
                     <security user-name="${env.DB_USER}" password="${env.DB_PASSWORD}" />
                 </datasource>
             </datasources>

@@ -1,0 +1,36 @@
+# ============================================================================
+# STAGE 1: Build con GraalVM y Maven Wrapper
+# ============================================================================
+FROM eclipse-temurin:21-jdk AS builder
+
+WORKDIR /app
+
+COPY ./backend/customer-loader-backend .
+
+RUN java -version && javac -version && ./mvnw -v
+
+RUN ./mvnw clean package -DskipTests 
+
+# ============================================================================
+# STAGE 2: Runtime con WildFly (Jakarta EE 10, JDK 21)
+# ============================================================================
+FROM quay.io/wildfly/wildfly:34.0.1.Final-jdk21
+
+COPY --from=builder /app/target/customer-loader-backend.war \
+    /opt/jboss/wildfly/standalone/deployments/customer-loader-backend.war
+
+COPY ./scripts/wildfly/standalone.xml /opt/jboss/wildfly/standalone/configuration/standalone.xml
+
+EXPOSE 8080 9990 8787
+
+ENV DB_HOST=${DB_HOST} \
+    DB_PORT=${DB_PORT} \
+    DB_NAME=${DB_NAME} \
+    DB_USER=${DB_USER} \
+    DB_PASSWORD=${DB_PASSWORD} \
+    JAVA_OPTS=${JAVA_OPTS}
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+    CMD curl -f http://localhost:8080/customer-loader-backend/health || exit 1
+
+CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]

@@ -18,12 +18,10 @@ public class AccountFactory {
     
     private static final String ACCOUNT_CODE_PREFIX = FileProcessingConstants.DEFAULT_ACCOUNT_CODE_PREFIX;
     
-    private final AccountRepositoryPort accountRepository;
+   @Inject
+    private AccountRepositoryPort accountRepository;
     
-    @Inject
-    public AccountFactory(AccountRepositoryPort accountRepository) {
-        this.accountRepository = accountRepository;
-    }
+   
     
     /**
      * Genera un número de cuenta único consultando la base de datos.
@@ -36,7 +34,8 @@ public class AccountFactory {
         final int MAX_ATTEMPTS = 10;
         
         while (attempts < MAX_ATTEMPTS) {
-            String number = ACCOUNT_CODE_PREFIX + "_" + UUID.randomUUID().toString().substring(0, 10).toUpperCase();
+            String number = ACCOUNT_CODE_PREFIX + "_" 
+            + UUID.randomUUID().toString().substring(0, 10).toUpperCase(java.util.Locale.ROOT);
             
             if (accountRepository.findByAccountNumber(number).isEmpty()) {
                 log.debug("Número de cuenta generado: {}", number);

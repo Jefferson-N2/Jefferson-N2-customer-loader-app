@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0.35
+    container_name: payroll_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-payroll_db}
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/database.sql:/docker-entrypoint-initdb.d/database.sql
+    networks:
+      - payroll_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  wildfly:
+    build:
+      context: .
+      dockerfile: /backend/customer-loader-backend/dockerfile
+    image: payroll_wildfly:${BACKEND_VERSION:-latest}
+    container_name: payroll_wildfly
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      HIBERNATE_DIALECT: ${HIBERNATE_DIALECT}
+      HIBERNATE_HBM2DDL_AUTO: ${HIBERNATE_HBM2DDL_AUTO}
+      HIBERNATE_SHOW_SQL: ${HIBERNATE_SHOW_SQL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      JAVA_OPTS: ${JAVA_OPTS}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+      - "9990:9990"
+    networks:
+      - payroll_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  payroll_network:
+    driver: bridge

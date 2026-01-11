@@ -8,13 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bulk_load_errors", indexes = {
-    @Index(name = "idx_process_id", columnList = "process_id"),
-    @Index(name = "idx_client_code", columnList = "client_code"),
-    @Index(name = "idx_id_number", columnList = "id_number"),
-    @Index(name = "idx_file_name", columnList = "file_name"),
-    @Index(name = "idx_processing_date", columnList = "processing_date")
-})
+@Table(name = "bulk_load_errors")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

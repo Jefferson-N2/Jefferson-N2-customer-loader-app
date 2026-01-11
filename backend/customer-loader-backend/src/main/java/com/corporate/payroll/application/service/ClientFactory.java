@@ -18,12 +18,8 @@ public class ClientFactory {
     
     private static final String CLIENT_CODE_PREFIX = FileProcessingConstants.DEFAULT_CLIENT_CODE_PREFIX;
     
-    private final ClientRepositoryPort clientRepository;
-    
     @Inject
-    public ClientFactory(ClientRepositoryPort clientRepository) {
-        this.clientRepository = clientRepository;
-    }
+    private ClientRepositoryPort clientRepository;
     
     /**
      * Genera un código de cliente único consultando la base de datos.
@@ -36,9 +32,9 @@ public class ClientFactory {
         final int MAX_ATTEMPTS = 10;
         
         while (attempts < MAX_ATTEMPTS) {
-            String code = CLIENT_CODE_PREFIX + "_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            String code = CLIENT_CODE_PREFIX + "_" 
+            + UUID.randomUUID().toString().substring(0, 8).toUpperCase(java.util.Locale.ROOT);
             
-            // Consultar BD para verificar unicidad
             if (clientRepository.findByClientCode(code).isEmpty()) {
                 log.debug("Código de cliente generado: {}", code);
                 return code;

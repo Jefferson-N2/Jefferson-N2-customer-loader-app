@@ -8,11 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bulk_load_processes", indexes = {
-    @Index(name = "idx_process_id", columnList = "process_id"),
-    @Index(name = "idx_status", columnList = "status"),
-    @Index(name = "idx_processing_date", columnList = "processing_date")
-})
+@Table(name = "bulk_load_processes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,15 +38,12 @@ public class BulkLoadProcessEntity {
     private Integer errorCount;
     
     @Column(name = "processing_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime processingDate;
     
     @Column(name = "created_at", nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
     
     @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
     
     @PrePersist

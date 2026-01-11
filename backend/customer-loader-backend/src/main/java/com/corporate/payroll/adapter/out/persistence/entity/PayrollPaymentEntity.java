@@ -9,10 +9,7 @@ import java.time.LocalDate;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "payroll_payments", indexes = {
-    @Index(name = "idx_account_id", columnList = "account_id"),
-    @Index(name = "idx_payment_date", columnList = "payment_date")
-})
+@Table(name = "payroll_payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

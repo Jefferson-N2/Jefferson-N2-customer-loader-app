@@ -9,10 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Table(name = "accounts", indexes = {
-    @Index(name = "idx_account_number", columnList = "account_number"),
-    @Index(name = "idx_client_id", columnList = "client_id")
-})
+@Table(name = "accounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
