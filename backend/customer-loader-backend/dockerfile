@@ -31,6 +31,6 @@ ENV DB_HOST=${DB_HOST} \
     JAVA_OPTS=${JAVA_OPTS}
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
-    CMD curl -f http://localhost:8080/customer-loader-backend/health || exit 1
+    CMD curl -f http://localhost:8080/customer-loader-backend/api/health || exit 1
 
 CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]
