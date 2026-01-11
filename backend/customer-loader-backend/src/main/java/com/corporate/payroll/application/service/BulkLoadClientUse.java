@@ -104,11 +104,11 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
             }
 
             String line;
-            int rowNumber = 1;
+            int lineNumber = 1;
 
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) {
-                    rowNumber++;
+                    lineNumber++;
                     continue;
                 }
 
@@ -118,7 +118,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                     String missingFields = identifyMissingFields(values);
                     BulkLoadError error = BulkLoadError.builder()
                             .processId(processId)
-                            .rowNumber(rowNumber)
+                            .lineNumber(lineNumber)
                             .errorMessage("Fila incompleta. Campos faltantes: " + missingFields)
                             .errorType(FileProcessingConstants.ErrorType.MISSING_FIELD.getValue())
                             .fileName(fileName)
@@ -126,7 +126,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                             .build();
                     errorRepository.saveAll(Arrays.asList(error));
                     errorCount++;
-                    rowNumber++;
+                    lineNumber++;
                     continue;
                 }
 
@@ -138,7 +138,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                 String phoneNumber = values[FileProcessingConstants.INDEX_PHONE].trim();
 
                 List<BulkLoadError> validationErrors = ClientValidator.validateClient(
-                        idType, idNumber, joinDate, payrollValue, email, phoneNumber, rowNumber
+                        idType, idNumber, joinDate, payrollValue, email, phoneNumber, lineNumber
                 );
 
                 String finalFileName = fileName;
@@ -156,18 +156,18 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                 if (!validationErrors.isEmpty()) {
                     errorRepository.saveAll(validationErrors);
                     errorCount++;
-                    rowNumber++;
+                    lineNumber++;
                     continue;
                 }
 
                 if (processValidRow(idType, idNumber, joinDate, payrollValue, email, phoneNumber,
-                        rowNumber, fileName, processingDate, processId, clientFactory, accountFactory)) {
+                        lineNumber, fileName, processingDate, processId, clientFactory, accountFactory)) {
                     successCount++;
                 } else {
                     errorCount++;
                 }
 
-                rowNumber++;
+                lineNumber++;
             }
 
             // Actualizar registro del proceso con resultados finales
@@ -197,7 +197,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
      */
     private boolean processValidRow(String idType, String idNumber, String joinDate,
                                    String payrollValue, String email, String phoneNumber,
-                                   Integer rowNumber, String fileName, LocalDateTime processingDate,
+                                   Integer lineNumber, String fileName, LocalDateTime processingDate,
                                    String processId, ClientFactory clientFactory, AccountFactory accountFactory) {
         try {
             if (clientRepository.existsByIdNumber(idNumber)) {
@@ -205,7 +205,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                         .processId(processId)
                         .idType(idType)
                         .idNumber(idNumber)
-                        .rowNumber(rowNumber)
+                        .lineNumber(lineNumber)
                         .errorMessage("El cliente con este número de identificación ya existe")
                         .errorType(FileProcessingConstants.ErrorType.DUPLICATE_CLIENT.getValue())
                         .fileName(fileName)
@@ -222,7 +222,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                         .processId(processId)
                         .idType(idType)
                         .idNumber(idNumber)
-                        .rowNumber(rowNumber)
+                        .lineNumber(lineNumber)
                         .errorMessage("Cliente no encontrado en el servicio externo (Databook)")
                         .errorType(FileProcessingConstants.ErrorType.NOT_FOUND_IN_DATABOOK.getValue())
                         .fileName(fileName)
@@ -252,7 +252,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                         .clientCode(idNumber)
                         .idType(idType)
                         .idNumber(idNumber)
-                        .rowNumber(rowNumber)
+                        .lineNumber(lineNumber)
                         .errorMessage("No se pudo generar un código de cliente único después de múltiples intentos")
                         .errorType(FileProcessingConstants.ErrorType.SYSTEM_ERROR.getValue())
                         .fileName(fileName)
@@ -272,7 +272,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                         .clientCode(client.getClientCode())
                         .idType(idType)
                         .idNumber(idNumber)
-                        .rowNumber(rowNumber)
+                        .lineNumber(lineNumber)
                         .errorMessage("No se pudo generar un número de cuenta único después de múltiples intentos")
                         .errorType(FileProcessingConstants.ErrorType.SYSTEM_ERROR.getValue())
                         .fileName(fileName)
@@ -294,13 +294,13 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
         } catch (Exception e) {
             String sanitizedMessage = e.getMessage() != null ? 
                 e.getMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
-            log.error("Error procesando cliente en fila {}: {}", rowNumber, sanitizedMessage);
+            log.error("Error procesando cliente en fila {}: {}", lineNumber, sanitizedMessage);
             
             BulkLoadError error = BulkLoadError.builder()
                     .processId(processId)
                     .idType(idType)
                     .idNumber(idNumber)
-                    .rowNumber(rowNumber)
+                    .lineNumber(lineNumber)
                     .errorMessage("Error al procesar: " + sanitizedMessage)
                     .errorType("PROCESSING_ERROR")
                     .fileName(fileName)
@@ -330,7 +330,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
         if (headerLine == null || headerLine.trim().isEmpty()) {
             return BulkLoadError.builder()
                     .processId(processId)
-                    .rowNumber(0)
+                    .lineNumber(0)
                     .errorMessage("El archivo no contiene encabezados válidos")
                     .errorType(FileProcessingConstants.ErrorType.INVALID_FORMAT.getValue())
                     .fileName(fileName)

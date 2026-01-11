@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ClientErrorDto {
-    private Integer rowNumber;
+    private Integer lineNumber;
     private String errorType;
     private String errorMessage;
 }

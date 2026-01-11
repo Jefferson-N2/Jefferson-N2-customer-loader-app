@@ -52,7 +52,7 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
     public List<BulkLoadError> findByFileName(String fileName, long offset, int limit) {
         List<BulkLoadErrorEntity> entities = entityManager.createQuery(
                         "SELECT e FROM BulkLoadErrorEntity e WHERE e.fileName = :fileName " +
-                                "ORDER BY e.processingDate DESC, e.rowNumber ASC",
+                                "ORDER BY e.processingDate DESC, e.lineNumber ASC",
                         BulkLoadErrorEntity.class
                 )
                 .setParameter("fileName", fileName)
@@ -71,7 +71,7 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
         try {
             List<BulkLoadErrorEntity> entities = entityManager.createQuery(
                             "SELECT e FROM BulkLoadErrorEntity e WHERE e.clientCode = :clientCode " +
-                                    "ORDER BY e.processingDate DESC, e.rowNumber ASC",
+                                    "ORDER BY e.processingDate DESC, e.lineNumber ASC",
                             BulkLoadErrorEntity.class)
                     .setParameter("clientCode", clientCode)
                     .getResultList();
@@ -96,7 +96,7 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
             List<BulkLoadErrorEntity> entities = entityManager.createQuery(
                             "SELECT e FROM BulkLoadErrorEntity e WHERE e.processId = :processId " +
                                     "AND e.clientCode = :clientCode " +
-                                    "ORDER BY e.processingDate DESC, e.rowNumber ASC",
+                                    "ORDER BY e.processingDate DESC, e.lineNumber ASC",
                             BulkLoadErrorEntity.class)
                     .setParameter("processId", processId)
                     .setParameter("clientCode", clientCode)

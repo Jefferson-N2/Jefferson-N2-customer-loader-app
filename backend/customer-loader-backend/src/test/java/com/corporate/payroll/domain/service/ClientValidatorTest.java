@@ -161,8 +161,8 @@ class ClientValidatorTest {
                 idType, idNumber, joinDate, payrollValue, email, phoneNumber, ROW_NUMBER);
 
         assertTrue(errors.size() > 5, "Should return multiple errors for multiple invalid fields");
-        assertTrue(errors.stream().allMatch(e -> e.getRowNumber().equals(ROW_NUMBER)),
-                "All errors should have correct row number");
+        assertTrue(errors.stream().allMatch(e -> e.getLineNumber().equals(ROW_NUMBER)),
+                "All errors should have correct line number");
         assertTrue(errors.stream().allMatch(e -> "VALIDATION_ERROR".equals(e.getErrorType())),
                 "All errors should be of type VALIDATION_ERROR");
     }
@@ -201,14 +201,14 @@ class ClientValidatorTest {
     }
 
     @Test
-    void testValidateClientErrorsIncludeCorrectRowNumber() {
+    void testValidateClientErrorsIncludeCorrectLineNumber() {
         String idType = "X";
-        Integer rowNumber = 42;
+        Integer lineNumber = 42;
 
         List<BulkLoadError> errors = ClientValidator.validateClient(
-                idType, "12345678", "2025-01-15", "50000", "test@test.com", "3125551234", rowNumber);
+                idType, "12345678", "2025-01-15", "50000", "test@test.com", "3125551234", lineNumber);
 
-        assertTrue(errors.stream().allMatch(e -> e.getRowNumber().equals(rowNumber)),
-                "All errors should have the specified row number");
+        assertTrue(errors.stream().allMatch(e -> e.getLineNumber().equals(lineNumber)),
+                "All errors should have the specified line number");
     }
 }

@@ -45,7 +45,7 @@ class BulkLoadErrorRepositoryAdapterTest {
                 .processId("PROC123")
                 .clientCode("CLI001")
                 .fileName("test.csv")
-                .rowNumber(1)
+                .lineNumber(1)
                 .errorMessage("Error de prueba")
                 .processingDate(LocalDateTime.now())
                 .build();
@@ -54,7 +54,7 @@ class BulkLoadErrorRepositoryAdapterTest {
         errorEntity.setProcessId("PROC123");
         errorEntity.setClientCode("CLI001");
         errorEntity.setFileName("test.csv");
-        errorEntity.setRowNumber(1);
+        errorEntity.setLineNumber(1);
         errorEntity.setErrorMessage("Error de prueba");
         errorEntity.setProcessingDate(LocalDateTime.now());
     }

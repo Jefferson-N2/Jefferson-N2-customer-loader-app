@@ -31,8 +31,8 @@ public class BulkLoadErrorEntity {
     @Column(name = "id_number", length = 50)
     private String idNumber;
     
-    @Column(name = "row_number", nullable = false)
-    private Integer rowNumber;
+    @Column(name = "line_number", nullable = false)
+    private Integer lineNumber;
     
     @Column(name = "error_message", nullable = false, length = 500)
     private String errorMessage;

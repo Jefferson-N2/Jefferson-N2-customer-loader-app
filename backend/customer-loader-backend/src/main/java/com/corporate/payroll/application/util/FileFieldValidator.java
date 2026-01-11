@@ -61,7 +61,7 @@ public final class FileFieldValidator {
     public static BulkLoadError buildErrorHeaders(
                                             String message, String fileName, LocalDateTime processingDate) {
         return BulkLoadError.builder()
-                .rowNumber(FileProcessingConstants.HEADER_ROW)
+                .lineNumber(FileProcessingConstants.HEADER_ROW)
                 .errorMessage(message)
                 .errorType(FileProcessingConstants.ErrorType.INVALID_HEADERS.getValue())
                 .fileName(fileName)

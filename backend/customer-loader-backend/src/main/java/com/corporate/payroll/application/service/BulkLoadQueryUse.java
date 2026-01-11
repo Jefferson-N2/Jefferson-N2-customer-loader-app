@@ -67,11 +67,15 @@ public class BulkLoadQueryUse implements BulkLoadQueryPort {
         List<BulkLoadError> errors = errorRepository.findByClientCodeAndProcessId(processId, clientCode);
         
         List<ClientErrorDto> errorDtos = errors.stream()
-                .map(error -> ClientErrorDto.builder()
-                        .rowNumber(error.getRowNumber())
-                        .errorType(error.getErrorType())
-                        .errorMessage(error.getErrorMessage())
-                        .build())
+                .map(error -> {
+                    String sanitizedMessage = error.getErrorMessage() != null ? 
+                        error.getErrorMessage().replaceAll("[\r\n\t]", "_") : "Error desconocido";
+                    return ClientErrorDto.builder()
+                            .lineNumber(error.getLineNumber())
+                            .errorType(error.getErrorType())
+                            .errorMessage(sanitizedMessage)
+                            .build();
+                })
                 .collect(Collectors.toList());
         
         return ClientErrorsResponseDto.builder()

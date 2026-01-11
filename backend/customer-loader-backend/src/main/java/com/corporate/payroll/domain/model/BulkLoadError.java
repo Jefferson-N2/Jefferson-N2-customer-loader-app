@@ -17,7 +17,7 @@ public class BulkLoadError {
     private String clientCode;
     private String idType;
     private String idNumber;
-    private Integer rowNumber;
+    private Integer lineNumber;
     private String errorMessage;
     private String errorType;
     private String fileName;

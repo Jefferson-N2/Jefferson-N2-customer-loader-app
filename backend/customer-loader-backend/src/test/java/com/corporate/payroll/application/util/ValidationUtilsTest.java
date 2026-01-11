@@ -29,7 +29,7 @@ class ValidationUtilsTest {
         assertNotNull(result, "Null value should return error");
         assertTrue(result.getErrorMessage().contains("no puede estar vacío"), "Error message should contain 'no puede estar vacío'");
         assertEquals("VALIDATION_ERROR", result.getErrorType(), "Error type should be VALIDATION_ERROR");
-        assertEquals(ROW_NUMBER, result.getRowNumber(), "Row number should match");
+        assertEquals(ROW_NUMBER, result.getLineNumber(), "Line number should match");
     }
 
     @Test

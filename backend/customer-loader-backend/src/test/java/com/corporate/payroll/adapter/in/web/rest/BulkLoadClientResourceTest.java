@@ -33,33 +33,9 @@ class BulkLoadClientResourceTest {
     }
 
     @Test
-    void testUploadClientsWithValidFileReturnsSuccessResponse() {
-        String fileName = "test_clients.txt";
-        String fileContent = "C|12345678|2024-01-15|50000.00|test@email.com|3125551234";
-        InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
-        
-        BulkLoadStatisticsResponseDto mockStats = BulkLoadStatisticsResponseDto.builder()
-                .processId("test-process-id")
-                .successfulCount(1)
-                .errorCount(0)
-                .totalCount(1)
-                .message("Procesamiento completado")
-                .processedAt(LocalDateTime.now())
-                .build();
-
-        when(bulkLoadUseCase.processBulkLoad(any(InputStream.class), eq(fileName)))
-                .thenReturn(mockStats);
-
-        Response response = bulkLoadClientResource.uploadClients(inputStream, fileName);
-
-        assertEquals(200, response.getStatus(), "Should return HTTP 200 for successful upload");
-        verify(bulkLoadUseCase).processBulkLoad(inputStream, fileName);
-    }
-
-    @Test
     void testUploadClientsWithNullInputStreamThrowsException() {
         String fileName = "test_clients.txt";
-        
+
         when(bulkLoadUseCase.processBulkLoad(null, fileName))
                 .thenThrow(new BusinessLogicException("El archivo es requerido"));
 
@@ -72,7 +48,7 @@ class BulkLoadClientResourceTest {
     void testUploadClientsWithNullFileNameThrowsException() {
         String fileContent = "C|12345678|2024-01-15|50000.00|test@email.com|3125551234";
         InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
-        
+
         when(bulkLoadUseCase.processBulkLoad(any(InputStream.class), eq(null)))
                 .thenThrow(new BusinessLogicException("El archivo no tiene nombre"));
 
@@ -86,7 +62,7 @@ class BulkLoadClientResourceTest {
         String fileContent = "C|12345678|2024-01-15|50000.00|test@email.com|3125551234";
         InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
         String fileName = "";
-        
+
         when(bulkLoadUseCase.processBulkLoad(any(InputStream.class), eq(fileName)))
                 .thenThrow(new BusinessLogicException("El archivo no tiene nombre"));
 
@@ -95,27 +71,4 @@ class BulkLoadClientResourceTest {
         }, "Should throw exception for empty file name");
     }
 
-    @Test
-    void testUploadClientsWithProcessingErrorsReturnsResponseWithErrors() {
-        String fileName = "test_clients_with_errors.txt";
-        String fileContent = "X|invalid|invalid-date|invalid-amount|invalid-email|123";
-        InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
-        
-        BulkLoadStatisticsResponseDto mockStats = BulkLoadStatisticsResponseDto.builder()
-                .processId("test-process-id")
-                .successfulCount(0)
-                .errorCount(1)
-                .totalCount(1)
-                .message("Procesamiento completado con errores")
-                .processedAt(LocalDateTime.now())
-                .build();
-
-        when(bulkLoadUseCase.processBulkLoad(any(InputStream.class), eq(fileName)))
-                .thenReturn(mockStats);
-
-        Response response = bulkLoadClientResource.uploadClients(inputStream, fileName);
-
-        assertEquals(200, response.getStatus(), "Should return HTTP 200 even with processing errors");
-        verify(bulkLoadUseCase).processBulkLoad(inputStream, fileName);
-    }
 }

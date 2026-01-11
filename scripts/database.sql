@@ -84,7 +84,7 @@ CREATE TABLE bulk_load_errors (
     client_code VARCHAR(50),
     id_type CHAR(1),
     id_number VARCHAR(50),
-    row_index INT NOT NULL,
+    line_number INT NOT NULL,
     error_message VARCHAR(500) NOT NULL,
     error_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,

@@ -27,42 +27,42 @@ public class ClientValidator {
      */
     public static List<BulkLoadError> validateClient(String idType, String idNumber, String joinDate,
                                                       String payrollValue, String email, String phoneNumber,
-                                                      Integer rowNumber) {
-        log.debug("Iniciando validación de cliente en fila: {}", rowNumber);
+                                                      Integer lineNumber) {
+        log.debug("Iniciando validación de cliente en fila: {}", lineNumber);
         List<BulkLoadError> errors = new ArrayList<>();
 
-        errors.add(ValidationUtils.validateNotBlank(idType, "Tipo de identificación", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(idType, "Tipo de identificación", lineNumber));
         errors.add(ValidationUtils.validatePattern(idType, ID_TYPE_PATTERN,
-                "Tipo de identificación debe ser 'C' (Cédula) o 'P' (Pasaporte)", rowNumber));
+                "Tipo de identificación debe ser 'C' (Cédula) o 'P' (Pasaporte)", lineNumber));
 
-        errors.add(ValidationUtils.validateNotBlank(idNumber, "Número de identificación", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(idNumber, "Número de identificación", lineNumber));
         errors.add(ValidationUtils.validatePattern(idNumber, ALPHANUMERIC_PATTERN,
-                "Número de identificación debe ser alfanumérico", rowNumber));
+                "Número de identificación debe ser alfanumérico", lineNumber));
 
-        errors.add(ValidationUtils.validateNotBlank(joinDate, "Fecha de ingreso", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(joinDate, "Fecha de ingreso", lineNumber));
         errors.add(ValidationUtils.validateDate(joinDate, DATE_FORMATTER,
-                "Fecha de ingreso debe estar en formato yyyy-MM-dd", rowNumber));
+                "Fecha de ingreso debe estar en formato yyyy-MM-dd", lineNumber));
 
-        errors.add(ValidationUtils.validateNotBlank(payrollValue, "Valor del pago de nómina", rowNumber));
-        errors.add(ValidationUtils.validateNumeric(payrollValue, "Valor del pago de nómina", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(payrollValue, "Valor del pago de nómina", lineNumber));
+        errors.add(ValidationUtils.validateNumeric(payrollValue, "Valor del pago de nómina", lineNumber));
 
-        errors.add(ValidationUtils.validateNotBlank(email, "Correo electrónico", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(email, "Correo electrónico", lineNumber));
         errors.add(ValidationUtils.validatePattern(email, EMAIL_PATTERN,
-                "Correo electrónico no tiene un formato válido", rowNumber));
+                "Correo electrónico no tiene un formato válido", lineNumber));
 
-        errors.add(ValidationUtils.validateNotBlank(phoneNumber, "Número de celular", rowNumber));
+        errors.add(ValidationUtils.validateNotBlank(phoneNumber, "Número de celular", lineNumber));
         errors.add(ValidationUtils.validatePattern(phoneNumber, Pattern.compile("^\\d{10}$"),
-                "Número de celular debe contener exactamente 10 dígitos numéricos", rowNumber));
+                "Número de celular debe contener exactamente 10 dígitos numéricos", lineNumber));
 
         List<BulkLoadError> filteredErrors = errors.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         
         if (filteredErrors.isEmpty()) {
-            log.debug("Validación exitosa para cliente en fila: {}", rowNumber);
+            log.debug("Validación exitosa para cliente en fila: {}", lineNumber);
         } else {
             log.warn("Se encontraron {} errores para cliente en fila: {}", 
-                filteredErrors.size(), rowNumber);
+                filteredErrors.size(), lineNumber);
         }
         
         return filteredErrors;

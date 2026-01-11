@@ -11,10 +11,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class SecurityValidationTest {
 
     @Test
-    void sanitizeFileName_WithValidFileName_ShouldReturnSame() {
+    void testSanitizeFileNameWithValidFileNameReturnsSame() {
         String validFileName = "clientes_enero_2024.txt";
         String result = SecurityValidationInterceptor.sanitizeFileName(validFileName);
-        assertEquals(validFileName, result);
+        assertEquals(validFileName, result, "Valid filename should return unchanged");
     }
 
     @ParameterizedTest
@@ -28,17 +28,17 @@ class SecurityValidationTest {
         "archivo@especial.txt",
         "archivo#hash.txt"
     })
-    void sanitizeFileName_WithInvalidFileName_ShouldThrowException(String invalidFileName) {
+    void testSanitizeFileNameWithInvalidFileNameThrowsException(String invalidFileName) {
         assertThrows(BusinessLogicException.class, () -> {
             SecurityValidationInterceptor.sanitizeFileName(invalidFileName);
-        });
+        }, "Invalid filename should throw exception: " + invalidFileName);
     }
 
     @Test
-    void sanitizeFileName_WithNullFileName_ShouldThrowException() {
+    void testSanitizeFileNameWithNullFileNameThrowsException() {
         assertThrows(BusinessLogicException.class, () -> {
             SecurityValidationInterceptor.sanitizeFileName(null);
-        });
+        }, "Null filename should throw exception");
     }
 
     @ParameterizedTest
@@ -49,10 +49,10 @@ class SecurityValidationTest {
         "archivo_con_guiones.txt",
         "archivo123.txt"
     })
-    void sanitizeFileName_WithValidFileNames_ShouldPass(String validFileName) {
+    void testSanitizeFileNameWithValidFileNamesPasses(String validFileName) {
         assertDoesNotThrow(() -> {
             String result = SecurityValidationInterceptor.sanitizeFileName(validFileName);
-            assertEquals(validFileName, result);
-        });
+            assertEquals(validFileName, result, "Valid filename should be returned unchanged");
+        }, "Valid filename should not throw exception: " + validFileName);
     }
 }
