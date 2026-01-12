@@ -76,7 +76,7 @@
 
       <!-- Columna: Estado -->
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef scope="col">Estado</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Estado Cuenta</th>
         <td mat-cell *matCellDef="let element">
           <span
             class="status-badge"
@@ -84,6 +84,27 @@
             [attr.aria-label]="'Estado: ' + (element.account?.status || 'N/A')"
           >
             {{ element.account?.status || 'N/A' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Número de Cuenta -->
+      <ng-container matColumnDef="accountNumber">
+        <th mat-header-cell *matHeaderCellDef scope="col">Número de Cuenta</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.account?.accountNumber || 'N/A' }}
+        </td>
+      </ng-container>
+
+      <!-- Columna: Valor Nómina -->
+      <ng-container matColumnDef="payrollValue">
+        <th mat-header-cell *matHeaderCellDef scope="col">Valor Nómina</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="payroll-value">
+            {{ element.account?.payrollValue !== undefined && element.account?.payrollValue !== null 
+              ? (element.account.payrollValue | currency:'':'symbol':'1.2-2')
+              : 'N/A'
+            }}
           </span>
         </td>
       </ng-container>
@@ -125,17 +146,18 @@
 
   <!-- Vacío -->
   <ng-container *ngIf="clients$ | async as clients">
-    <mat-card
-      class="empty-state"
-      *ngIf="clients.content.length === 0"
-      role="status"
-    >
-      <mat-card-content>
-        <mat-icon class="empty-icon" aria-hidden="true">people_outline</mat-icon>
-        <h3>No hay clientes</h3>
-        <p>No se encontraron clientes para este proceso</p>
-      </mat-card-content>
-    </mat-card>
+    <ng-container *ngIf="clients.content && clients.content.length === 0">
+      <mat-card
+        class="empty-state"
+        role="status"
+      >
+        <mat-card-content>
+          <mat-icon class="empty-icon" aria-hidden="true">people_outline</mat-icon>
+          <h3>No hay clientes</h3>
+          <p>No se encontraron clientes para este proceso</p>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
   </ng-container>
 
   <!-- Error -->

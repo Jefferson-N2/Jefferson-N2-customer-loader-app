@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 /**
  * Tipo de notificación a mostrar
@@ -44,7 +45,18 @@ export interface Notification {
   imports: [CommonModule, MatIconModule, MatButtonModule],
   templateUrl: './notification.html',
   styleUrl: './notification.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
+      ])
+    ])
+  ]
 })
 export class NotificationComponent implements OnInit, OnDestroy {
   /**

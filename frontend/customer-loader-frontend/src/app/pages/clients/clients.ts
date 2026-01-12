@@ -17,7 +17,7 @@ import { PaginatedResponse, ClientDetail } from '../../models';
  * Componente que muestra tabla de clientes cargados
  * 
  * Características:
- * - Tabla con 6 columnas (Código, Nombre, ID, Email, Teléfono, Estado)
+ * - Tabla con 8 columnas (Código, Nombre, ID, Email, Teléfono, Estado Cuenta, Número Cuenta, Nómina)
  * - Paginación (5, 10, 25 registros)
  * - Estados: cargando, vacío, error
  * - TrackBy para optimización de renderizado
@@ -58,7 +58,9 @@ export class Clients implements OnDestroy {
     'id',
     'email',
     'phone',
-    'status'
+    'status',
+    'accountNumber',
+    'payrollValue'
   ];
 
   /** Tamaño de página actual */

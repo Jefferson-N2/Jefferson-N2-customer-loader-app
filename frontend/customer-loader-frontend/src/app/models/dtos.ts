@@ -10,6 +10,22 @@ export interface BulkLoadResponse {
 }
 
 /**
+ * DTO: Proceso de carga masiva
+ */
+export interface BulkLoadProcess {
+  id: number;
+  processId: string;
+  fileName: string;
+  status: string;
+  totalRecords: number;
+  successfulCount: number;
+  errorCount: number;
+  processingDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * DTO: Estadísticas del proceso
  */
 export interface BulkLoadStatistics {
@@ -40,12 +56,16 @@ export interface ProcessDetails {
  * DTO: Error de carga
  */
 export interface BulkLoadError {
-  code: string; 
-  message: string;
-  field?: string;
+  id?: number;
+  processId?: string;
   lineNumber: number; 
-  idType?: string;
-  idNumber?: string;
+  idType: string;
+  idNumber: string;
+  errorMessage: string;
+  errorType: string;
+  fileName?: string;
+  processingDate?: string;
+  createdAt?: string;
 }
 
 /**

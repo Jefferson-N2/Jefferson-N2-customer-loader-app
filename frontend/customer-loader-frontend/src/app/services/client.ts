@@ -17,7 +17,31 @@ export class ClientService {
   private readonly apiUrl = `${environment.apiBaseUrl}/clients`;
   private readonly requestTimeout = environment.apiTimeout;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
+
+  /**
+   * Obtiene todos los clientes registrados con paginación
+   * 
+   * @param page - Número de página (0-indexed)
+   * @param size - Cantidad de registros por página
+   * @returns Observable con respuesta paginada de todos los clientes
+   */
+  public getAllClients(
+    page: number = 0,
+    size: number = 20
+  ): Observable<PaginatedResponse<ClientDetail>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<PaginatedResponse<ClientDetail>>(
+      this.apiUrl,
+      { params }
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener todos los clientes'))
+    );
+  }
 
   /**
    * Obtiene los clientes de un proceso de carga con paginación
@@ -39,12 +63,11 @@ export class ClientService {
     }
 
     const params = new HttpParams()
-      .set('processId', processId)
       .set('page', page.toString())
       .set('size', size.toString());
 
     return this.http.get<PaginatedResponse<ClientDetail>>(
-      this.apiUrl,
+      this.apiUrl + `/${processId}`,
       { params }
     ).pipe(
       timeout(this.requestTimeout),
@@ -70,6 +93,27 @@ export class ClientService {
     ).pipe(
       timeout(this.requestTimeout),
       catchError(error => this.handleError(error, 'obtener cliente'))
+    );
+  }
+
+  /**
+   * Obtiene un cliente por su código
+   * 
+   * @param clientCode - Código único del cliente
+   * @returns Observable con detalles completos del cliente
+   * 
+   * @throws HttpErrorResponse si no encuentra el cliente
+   */
+  public getClientByCode(clientCode: string): Observable<ClientDetail> {
+    if (!clientCode) {
+      return throwError(() => new Error('Código de cliente requerido'));
+    }
+
+    return this.http.get<ClientDetail>(
+      `${this.apiUrl}/code/${clientCode}`
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener cliente por código'))
     );
   }
 

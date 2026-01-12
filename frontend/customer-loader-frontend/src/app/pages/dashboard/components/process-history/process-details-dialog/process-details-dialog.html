@@ -1,0 +1,130 @@
+<div class="dialog-header">
+  <h2>Detalles del Procesamiento</h2>
+</div>
+
+<div class="dialog-content">
+  <!-- Cargando -->
+  <div
+    class="loading"
+    *ngIf="isLoading$ | async"
+    role="status"
+    aria-label="Cargando detalles"
+  >
+    <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <!-- Contenido -->
+  <ng-container *ngIf="processDetails$ | async as details">
+    <!-- Información General -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>Información General</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">ID Proceso:</span>
+            <span class="value" [title]="details.processId">{{ details.processId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Archivo:</span>
+            <span class="value">{{ details.fileName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Estado:</span>
+            <span
+              class="status-badge"
+              [ngClass]="'status-' + (details.status.toLowerCase() || 'pending')"
+            >
+              {{ details.status }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Fecha:</span>
+            <span class="value">{{ formatDate(details.processingDate) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Estadísticas -->
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>Estadísticas</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Total de Registros</span>
+            <span class="stat-value">{{ details.totalRecords }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Exitosos</span>
+            <span class="stat-value success">{{ details.successfulCount }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Errores</span>
+            <span class="stat-value error">{{ details.errorCount }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">% Éxito</span>
+            <span class="stat-value">{{ getSuccessPercentage(details) }}%</span>
+          </div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="progress-bar">
+          <div
+            class="progress-fill success"
+            [style.width.%]="getSuccessPercentage(details)"
+          ></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Resumen de Errores -->
+    <mat-card class="errors-card" *ngIf="details.errorCount > 0">
+      <mat-card-header>
+        <mat-card-title>Detalles de Errores ({{ details.errors?.length || 0 }} errores)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="errors-table-wrapper" *ngIf="details.errors && details.errors.length > 0">
+          <table class="errors-table">
+            <thead>
+              <tr>
+                <th>Línea</th>
+                <th>Campo</th>
+                <th>Código</th>
+                <th>Mensaje</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let error of details.errors">
+                <td>{{ error.lineNumber }}</td>
+                <td>{{ error.field || 'N/A' }}</td>
+                <td><span class="error-code">{{ error.code }}</span></td>
+                <td>{{ error.message }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="error-summary" *ngIf="!details.errors || details.errors.length === 0">
+          No hay detalles de errores disponibles.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+
+  <!-- Error -->
+  <div class="error" *ngIf="error$ | async as error" role="alert">
+    <mat-icon>error</mat-icon>
+    <p>{{ error }}</p>
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button mat-button mat-dialog-close aria-label="Cerrar diálogo">
+    Cerrar
+  </button>
+</div>

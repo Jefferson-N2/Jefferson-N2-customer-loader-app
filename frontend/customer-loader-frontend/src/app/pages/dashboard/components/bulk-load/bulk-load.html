@@ -1,7 +1,6 @@
-<mat-card class="upload-card" role="region" aria-label="Sección de carga de archivos">
-  <mat-card-header>
-    <mat-card-title id="upload-title">Carga Masiva de Clientes</mat-card-title>
-    <mat-card-subtitle>Selecciona un archivo TXT para procesar</mat-card-subtitle>
+<mat-card class="upload-card compact" role="region" aria-label="Sección de carga de archivos">
+  <mat-card-header class="compact-header">
+    <mat-card-title id="upload-title">Carga Masiva</mat-card-title>
   </mat-card-header>
 
   <!-- Componente de Notificación Reutilizable -->
@@ -15,10 +14,10 @@
     </ng-container>
   </ng-container>
 
-  <mat-card-content>
+  <mat-card-content class="compact-content">
     <!-- Área de arrastre y selección -->
     <div
-      class="upload-area"
+      class="upload-area compact"
       [ngClass]="{'drag-over': isDragOver}"
       (click)="fileInput.click()"
       (dragover)="onDragOver($event)"
@@ -38,11 +37,10 @@
         aria-label="Seleccionar archivo TXT"
       />
 
-      <div class="upload-content">
+      <div class="upload-content compact">
         <mat-icon class="upload-icon" aria-hidden="true">cloud_upload</mat-icon>
-        <h3>Arrastra tu archivo aquí</h3>
-        <p>o haz clic para seleccionar</p>
-        <p id="upload-info" class="file-info">Formato: TXT | Máximo: 50 MB</p>
+        <h3>Arrastra o selecciona archivo</h3>
+        <p id="upload-info" class="file-info">TXT | Máx 50 MB</p>
       </div>
     </div>
 
