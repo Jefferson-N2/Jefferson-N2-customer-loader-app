@@ -102,30 +102,16 @@
       ></tr>
     </table>
 
-    <!-- Información de paginación y botón Load More -->
-    <div class="pagination-info" *ngIf="processes.content.length > 0">
-      <span class="info-text">
-        Mostrando {{ processes.content.length }} de {{ processes.totalElements }} procesos
-      </span>
-      
-      <button
-        *ngIf="canLoadMoreProcesses(processes)"
-        mat-raised-button
-        color="primary"
-        (click)="loadMore()"
-        [disabled]="isLoading$ | async"
-        aria-label="Cargar más procesos"
-        class="load-more-btn"
-      >
-        <mat-icon *ngIf="!(isLoading$ | async)">add</mat-icon>
-        <mat-spinner 
-          *ngIf="isLoading$ | async" 
-          diameter="20" 
-          aria-hidden="true">
-        </mat-spinner>
-        {{ (isLoading$ | async) ? 'Cargando...' : 'Cargar más' }}
-      </button>
-    </div>
+    <!-- Paginador -->
+    <mat-paginator
+      *ngIf="processes.content.length > 0"
+      [length]="processes.totalElements"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      aria-label="Paginador de procesos"
+      showFirstLastButtons
+    ></mat-paginator>
   
   </div>
 

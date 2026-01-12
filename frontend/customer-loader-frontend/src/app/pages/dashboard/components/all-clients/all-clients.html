@@ -110,30 +110,16 @@
       ></tr>
     </table>
 
-    <!-- Información de paginación y botón Load More -->
-    <div class="pagination-info" *ngIf="clients.content.length > 0">
-      <span class="info-text">
-        Mostrando {{ clients.content.length }} de {{ clients.totalElements }} clientes
-      </span>
-      
-      <button
-        *ngIf="canLoadMore(clients)"
-        mat-raised-button
-        color="primary"
-        (click)="loadMore()"
-        [disabled]="isLoading$ | async"
-        aria-label="Cargar más clientes"
-        class="load-more-btn"
-      >
-        <mat-icon *ngIf="!(isLoading$ | async)">add</mat-icon>
-        <mat-spinner 
-          *ngIf="isLoading$ | async" 
-          diameter="20" 
-          aria-hidden="true">
-        </mat-spinner>
-        {{ (isLoading$ | async) ? 'Cargando...' : 'Cargar más' }}
-      </button>
-    </div>
+    <!-- Paginador -->
+    <mat-paginator
+      *ngIf="clients.content.length > 0"
+      [length]="clients.totalElements"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      aria-label="Paginador de clientes"
+      showFirstLastButtons
+    ></mat-paginator>
   </div>
 
   <!-- Cargando -->

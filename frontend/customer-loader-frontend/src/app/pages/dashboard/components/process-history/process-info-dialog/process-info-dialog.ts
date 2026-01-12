@@ -10,6 +10,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -43,7 +44,8 @@ import { ClientDetailsDialogComponent } from '../client-details-dialog/client-de
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatPaginatorModule
   ],
   templateUrl: './process-info-dialog.html',
   styleUrl: './process-info-dialog.scss',
@@ -158,13 +160,11 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
    */
   private loadProcessDetails(): void {
     this.processService
-      .getAllProcesses(0, 100) // Obtener todos los procesos para encontrar el actual
+      .getProcessDetails(this.processId)
       .pipe(
         tap(response => {
-          // Buscar el proceso actual en la lista
-          const process = (response as any).content?.find((p: any) => p.processId === this.processId);
-          if (process) {
-            this.processDetails$.next(process);
+          if (response) {
+            this.processDetails$.next(response);
           }
           this.isLoading$.next(false);
           this.cdr.markForCheck();
@@ -192,13 +192,12 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
       .pipe(
         tap((data: any) => {
           if (data) {
-            // Manejar tanto respuesta paginada como array directo
             let errorsData = data.content || data;
             if (!Array.isArray(errorsData)) {
               errorsData = [];
             }
             
-            // Aplicar solo filtro de tipo ID localmente
+            // Aplicar filtro de tipo ID localmente
             const idTypeFilter = this.errorFilterIdType$.value;
             if (idTypeFilter) {
               errorsData = errorsData.filter((error: any) => 
@@ -206,6 +205,7 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
               );
             }
             
+            // NO acumular datos, reemplazar completamente
             const processedData = {
               content: errorsData,
               totalElements: data.totalElements || errorsData.length,
@@ -215,16 +215,7 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
               empty: errorsData.length === 0
             };
             
-            // Acumular datos si no es la primera página y no hay filtros
-            if (this.errorCurrentPage$.value === 0 || idTypeFilter) {
-              this.errorsSubject$.next(processedData);
-            } else {
-              const current = this.errorsSubject$.value;
-              this.errorsSubject$.next({
-                ...processedData,
-                content: [...current.content, ...processedData.content]
-              });
-            }
+            this.errorsSubject$.next(processedData);
           } else {
             this.errorsSubject$.next({
               content: [],
@@ -239,7 +230,6 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }),
         catchError((error) => {
-          console.error('Error loading errors:', error);
           this.isLoadingErrors$.next(false);
           this.errorsSubject$.next({
             content: [],
@@ -254,6 +244,14 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe();
+  }
+
+  /**
+   * Maneja el cambio de página en la tabla de errores
+   */
+  onErrorPageChange(event: PageEvent): void {
+    this.errorCurrentPage$.next(event.pageIndex);
+    this.loadErrors();
   }
 
   /**
@@ -282,6 +280,7 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
             });
           }
           
+          // NO acumular datos, reemplazar completamente
           const processedData = {
             ...data,
             content: clientsData,
@@ -289,17 +288,7 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
             empty: clientsData.length === 0
           };
           
-          // Si hay filtros o es página 0, reemplazar; si no, acumular
-          if (this.clientCurrentPage$.value === 0 || nameFilter || codeFilter) {
-            this.clientsSubject$.next(processedData);
-          } else {
-            const current = this.clientsSubject$.value;
-            this.clientsSubject$.next({
-              ...processedData,
-              content: [...current.content, ...processedData.content]
-            });
-          }
-          
+          this.clientsSubject$.next(processedData);
           this.isLoadingClients$.next(false);
           this.cdr.markForCheck();
         }),
@@ -322,99 +311,19 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Aplica filtros locales a errores
+   * Maneja el cambio de página en la tabla de clientes
    */
-  private applyErrorFilters(data: PaginatedResponse<BulkLoadError>): PaginatedResponse<BulkLoadError> {
-    let filtered = [...data.content];
-    const idTypeFilter = this.errorFilterIdType$.value.toUpperCase();
-
-    if (idTypeFilter) {
-      filtered = filtered.filter(e => e.idType?.toUpperCase() === idTypeFilter);
-    }
-
-    return {
-      ...data,
-      content: filtered,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / 5),
-      empty: filtered.length === 0
-    };
-  }
-
-  /**
-   * Aplica filtros locales a clientes
-   */
-  private applyClientFilters(data: PaginatedResponse<ClientDetail>): PaginatedResponse<ClientDetail> {
-    let filtered = [...data.content];
-    const nameFilter = this.clientFilterName$.value.toLowerCase();
-    const codeFilter = this.clientFilterCode$.value.toLowerCase();
-
-    if (nameFilter) {
-      filtered = filtered.filter(c => {
-        const fullName = `${c.firstNames} ${c.lastNames}`.toLowerCase();
-        return fullName.includes(nameFilter);
-      });
-    }
-
-    if (codeFilter) {
-      filtered = filtered.filter(c => c.clientCode?.toLowerCase().includes(codeFilter));
-    }
-
-    return {
-      ...data,
-      content: filtered,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / 5),
-      empty: filtered.length === 0
-    };
-  }
-
-  /**
-   * Carga más errores
-   */
-  loadMoreErrors(): void {
-    this.errorCurrentPage$.next(this.errorCurrentPage$.value + 1);
-    this.loadErrors();
-  }
-
-  /**
-   * Carga más clientes
-   */
-  loadMoreClients(): void {
-    this.clientCurrentPage$.next(this.clientCurrentPage$.value + 1);
+  onClientPageChange(event: PageEvent): void {
+    this.clientCurrentPage$.next(event.pageIndex);
     this.loadClients();
-  }
-
-  /**
-   * Verifica si hay más errores para cargar
-   */
-  canLoadMoreErrors(errors: PaginatedResponse<BulkLoadError>): boolean {
-    if (!errors || !errors.content) return false;
-    // Si hay menos registros que el total elementos, hay más para cargar
-    return errors.content.length < errors.totalElements;
-  }
-
-  /**
-   * Verifica si hay más clientes para cargar
-   */
-  canLoadMoreClients(clients: PaginatedResponse<ClientDetail>): boolean {
-    if (!clients || !clients.content) return false;
-    // Si hay menos registros que el total elementos, hay más para cargar
-    return clients.content.length < clients.totalElements;
   }
 
   /**
    * Obtiene etiqueta de tipo de ID
    */
   getIdTypeLabel(idType: string): string {
-    return idType === 'C' ? 'Persona Natural' : 'Persona Jurídica';
-  }
-
-  /**
-   * Obtiene el valor mínimo entre dos números
-   */
-  getMinValue(a: number, b: number): number {
-    return Math.min(a, b);
+    if (!idType) return 'N/A';
+    return idType === 'C' ? 'C (Cédula)' : idType === 'P' ? 'P (Pasaporte)' : idType;
   }
 
   /**

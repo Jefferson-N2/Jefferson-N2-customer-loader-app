@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -35,7 +36,8 @@ import { ClientDetailsDialogComponent } from '../process-history/client-details-
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatPaginatorModule
   ],
   templateUrl: './all-clients.html',
   styleUrl: './all-clients.scss',
@@ -121,22 +123,12 @@ export class AllClientsComponent implements OnDestroy {
   }
 
   /**
-   * Carga más clientes (página siguiente)
+   * Maneja el cambio de página del paginador
    */
-  loadMore(): void {
-    this.currentPage++;
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex;
     this.loadClients();
-  }
-
-
-  /**
-   * Verifica si hay más clientes para cargar
-   */
-  canLoadMore(clients: PaginatedResponse<ClientDetail>): boolean {
-    if (!clients || !clients.content) {
-      return false;
-    }
-    return clients.content.length < clients.totalElements;
   }
 
   /**

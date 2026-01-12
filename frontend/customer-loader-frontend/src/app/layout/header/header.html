@@ -5,12 +5,20 @@
     <span class="spacer"></span>
 
     <nav class="nav-links">
-      <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a mat-button routerLink="/all-clients" routerLinkActive="active" matTooltip="Ver todos los clientes cargados">
+      <a mat-button routerLink="/dashboard" routerLinkActive="active">
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </a>
+
+      <a mat-button routerLink="/clientes" routerLinkActive="active" matTooltip="Ver todos los clientes cargados">
         <mat-icon>people</mat-icon>
         Clientes
       </a>
-      <a mat-button routerLink="/health" routerLinkActive="active">Estado</a>
+
+      <a mat-button routerLink="/health" routerLinkActive="active">
+        <mat-icon>health_and_safety</mat-icon>
+        Estado
+      </a>
     </nav>
 
     <div class="health-indicator">

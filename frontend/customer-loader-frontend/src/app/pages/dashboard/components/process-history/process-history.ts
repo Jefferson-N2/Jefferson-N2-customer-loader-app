@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil, tap, catchError, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -39,7 +39,6 @@ import { ProcessInfoDialogComponent } from './process-info-dialog/process-info-d
     FormsModule,
     MatCardModule,
     MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -47,7 +46,8 @@ import { ProcessInfoDialogComponent } from './process-info-dialog/process-info-d
     MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatPaginatorModule
   ],
   templateUrl: './process-history.html',
   styleUrl: './process-history.scss',
@@ -133,7 +133,7 @@ export class ProcessHistoryComponent implements OnDestroy {
 
   /**
    * Carga los procesos del servidor
-   * Soporta load more concatenando resultados
+   * Reemplaza completamente el contenido (sin concatenación)
    * 
    * @private
    */
@@ -145,18 +145,7 @@ export class ProcessHistoryComponent implements OnDestroy {
       .getAllProcesses(this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          let resultData = data;
-          
-          // Si es una carga adicional (load more), concatenar con datos existentes
-          if (this.currentPage > 0) {
-            const current = this.processesSubject$.value;
-            resultData = {
-              ...data,
-              content: [...current.content, ...data.content]
-            };
-          }
-          
-          const filteredData = this.applyLocalFilters(resultData);
+          const filteredData = this.applyLocalFilters(data);
           this.processesSubject$.next(filteredData);
           this.isLoading$.next(false);
           this.cdr.markForCheck();
@@ -223,39 +212,21 @@ export class ProcessHistoryComponent implements OnDestroy {
   }
 
   /**
+   * Maneja el cambio de página del paginador
+   * 
+   * @param event - Evento del paginador
+   */
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex;
+    this.loadProcesses();
+  }
+
+  /**
    * Navega a la vista de todos los clientes
    */
   viewAllClients(): void {
     this.router.navigate(['/clientes']);
-  }
-
-  /**
-   * Carga más procesos (página siguiente)
-   */
-  loadMore(): void {
-    this.currentPage++;
-    this.loadProcesses();
-  }
-
-  /**
-   * Verifica si hay más procesos para cargar
-   */
-  canLoadMoreProcesses(processes: PaginatedResponse<BulkLoadProcess>): boolean {
-    if (!processes || !processes.content) {
-      return false;
-    }
-    return processes.content.length < processes.totalElements;
-  }
-
-  /**
-   * Maneja cambio de página en el paginador
-   * 
-   * @param event - Evento de cambio de página
-   */
-  onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.loadProcesses();
   }
 
   /**

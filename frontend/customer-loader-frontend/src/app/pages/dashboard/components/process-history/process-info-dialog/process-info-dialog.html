@@ -61,8 +61,8 @@
               (selectionChange)="errorFilterIdType$.next($event.value)"
             >
               <mat-option value="">Todos</mat-option>
-              <mat-option value="C">Persona Natural</mat-option>
-              <mat-option value="P">Persona Jurídica</mat-option>
+              <mat-option value="C">C (Cédula)</mat-option>
+              <mat-option value="P">P (Pasaporte)</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -114,19 +114,16 @@
             <tr mat-row *matRowDef="let row; columns: errorDisplayedColumns"></tr>
           </table>
 
-          <!-- Cargar Más Errores -->
-          <div class="load-more-section" *ngIf="canLoadMoreErrors(errors)">
-            <button 
-              mat-raised-button 
-              color="accent" 
-              (click)="loadMoreErrors()" 
-              [disabled]="isLoadingErrors$ | async"
-              class="load-more-button"
-            >
-              <mat-icon>add_circle</mat-icon>
-              Cargar {{ getMinValue(5, errors.totalElements - errors.content.length) }} errores más
-            </button>
-          </div>
+          <!-- Paginador de Errores -->
+          <mat-paginator
+            *ngIf="errors.content.length > 0"
+            [length]="errors.totalElements"
+            [pageSize]="5"
+            [pageSizeOptions]="[5, 10, 25]"
+            (page)="onErrorPageChange($event)"
+            aria-label="Paginador de errores"
+            showFirstLastButtons
+          ></mat-paginator>
 
           <!-- Sin errores -->
           <div class="empty-state" *ngIf="errors.content.length === 0">
@@ -228,19 +225,16 @@
             <tr mat-row *matRowDef="let row; columns: clientDisplayedColumns"></tr>
           </table>
 
-          <!-- Cargar Más Clientes -->
-          <div class="load-more-section" *ngIf="canLoadMoreClients(clients)">
-            <button 
-              mat-raised-button 
-              color="accent" 
-              (click)="loadMoreClients()" 
-              [disabled]="isLoadingClients$ | async"
-              class="load-more-button"
-            >
-              <mat-icon>add_circle</mat-icon>
-              Cargar {{ getMinValue(5, clients.totalElements - clients.content.length) }} clientes más
-            </button>
-          </div>
+          <!-- Paginador de Clientes -->
+          <mat-paginator
+            *ngIf="clients.content.length > 0"
+            [length]="clients.totalElements"
+            [pageSize]="5"
+            [pageSizeOptions]="[5, 10, 25]"
+            (page)="onClientPageChange($event)"
+            aria-label="Paginador de clientes"
+            showFirstLastButtons
+          ></mat-paginator>
 
           <!-- Sin clientes -->
           <div class="empty-state" *ngIf="clients.content.length === 0">

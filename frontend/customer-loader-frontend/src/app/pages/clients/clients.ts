@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil, switchMap, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -29,10 +29,10 @@ import { PaginatedResponse, ClientDetail } from '../../models';
     CommonModule,
     MatCardModule,
     MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatPaginatorModule
   ],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
@@ -119,7 +119,8 @@ export class Clients implements OnDestroy {
   }
 
   /**
-   * Carga los clientes del servidor con soporte para load more
+   * Carga los clientes del servidor
+   * Reemplaza completamente el contenido (sin concatenación)
    * 
    * @private
    */
@@ -131,17 +132,7 @@ export class Clients implements OnDestroy {
       .getClients(processId, this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          // Si es la primera página o estamos cargando de nuevo, reemplazar
-          if (this.currentPage === 0) {
-            this.clientsSubject$.next(data);
-          } else {
-            // Si es load more, concatenar con los datos existentes
-            const current = this.clientsSubject$.value;
-            this.clientsSubject$.next({
-              ...data,
-              content: [...current.content, ...data.content]
-            });
-          }
+          this.clientsSubject$.next(data);
           this.isLoading$.next(false);
         }),
         catchError(error => {
@@ -154,57 +145,17 @@ export class Clients implements OnDestroy {
   }
 
   /**
-   * Maneja cambio de página en el paginador
-   * 
-   * @param event - Evento de cambio de página
+   * Maneja el cambio de página del paginador
    */
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
-
+    this.currentPage = event.pageIndex;
     const processId = this.processId$.value;
     if (processId) {
       this.loadClientsInternal(processId)
         .pipe(takeUntil(this.destroy$))
         .subscribe();
     }
-  }
-
-  /**
-   * Carga más clientes (página siguiente)
-   */
-  loadMore(): void {
-    this.currentPage++;
-    const processId = this.processId$.value;
-    if (processId) {
-      this.loadClientsInternal(processId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe();
-    }
-  }
-
-  /**
-   * Verifica si hay más clientes para cargar
-   */
-  canLoadMore(clients: PaginatedResponse<ClientDetail>): boolean {
-    if (!clients || !clients.content) return false;
-    return clients.content.length < clients.totalElements;
-  }
-
-  /**
-   * Función trackBy para optimizar renderizado de filas
-   * 
-   * @param index - Índice de la fila
-   * @param item - Cliente a renderizar
-   * @returns Identificador único del cliente
-   * 
-   * @example
-   * ```html
-   * <tr *ngFor="let client of clients; trackBy: trackByClientCode">
-   * ```
-   */
-  trackByClientCode(_index: number, client: ClientDetail): string {
-    return client.clientCode || '';
   }
 
   /**

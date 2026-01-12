@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil, switchMap, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -28,10 +28,10 @@ import { PaginatedResponse, BulkLoadError } from '../../models';
     CommonModule,
     MatCardModule,
     MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatPaginatorModule
   ],
   templateUrl: './errors.html',
   styleUrl: './errors.scss',
@@ -116,6 +116,7 @@ export class Errors implements OnDestroy {
 
   /**
    * Carga los errores del servidor
+   * Reemplaza completamente el contenido (sin concatenación)
    * 
    * @private
    */
@@ -127,15 +128,7 @@ export class Errors implements OnDestroy {
       .getErrors(processId, this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          if (this.currentPage === 0) {
-            this.errorsSubject$.next(data);
-          } else {
-            const current = this.errorsSubject$.value;
-            this.errorsSubject$.next({
-              ...data,
-              content: [...current.content, ...data.content]
-            });
-          }
+          this.errorsSubject$.next(data);
           this.isLoading$.next(false);
         }),
         catchError(error => {
@@ -148,35 +141,11 @@ export class Errors implements OnDestroy {
   }
 
   /**
-   * Carga más errores
-   */
-  loadMore(): void {
-    this.currentPage++;
-    const processId = this.processId$.value;
-    if (processId) {
-      this.loadErrorsInternal(processId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe();
-    }
-  }
-
-  /**
-   * Verifica si hay más errores para cargar
-   */
-  canLoadMore(errors: PaginatedResponse<BulkLoadError>): boolean {
-    if (!errors || !errors.content) return false;
-    return errors.content.length < errors.totalElements;
-  }
-
-  /**
-   * Maneja cambio de página en el paginador
-   * 
-   * @param event - Evento de cambio de página
+   * Maneja el cambio de página del paginador
    */
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
-
+    this.currentPage = event.pageIndex;
     const processId = this.processId$.value;
     if (processId) {
       this.loadErrorsInternal(processId)
@@ -187,10 +156,6 @@ export class Errors implements OnDestroy {
 
   /**
    * Función trackBy para optimizar renderizado de filas
-   * 
-   * @param index - Índice de la fila
-   * @param item - Error a renderizar
-   * @returns Identificador único del error
    */
   trackByLineNumber(_index: number, item: BulkLoadError): number {
     return item.lineNumber || _index;
