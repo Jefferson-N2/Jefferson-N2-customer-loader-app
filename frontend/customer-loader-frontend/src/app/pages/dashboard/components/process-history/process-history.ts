@@ -19,8 +19,7 @@ import { of } from 'rxjs';
 import { ProcessService } from '../../../../services/process';
 import { ClientService } from '../../../../services/client';
 import { PaginatedResponse, BulkLoadProcess } from '../../../../models';
-import { ProcessDetailsDialogComponent } from './process-details-dialog/process-details-dialog';
-import { ClientDetailsDialogComponent } from './client-details-dialog/client-details-dialog';
+import { ProcessInfoDialogComponent } from './process-info-dialog/process-info-dialog';
 
 /**
  * Componente que muestra el historial de procesos de carga
@@ -72,12 +71,7 @@ export class ProcessHistoryComponent implements OnDestroy {
 
   /** Columnas a mostrar en la tabla */
   readonly displayedColumns: readonly string[] = [
-    'processId',
     'fileName',
-    'totalRecords',
-    'successfulCount',
-    'errorCount',
-    'processingDate',
     'status',
     'acciones'
   ];
@@ -85,17 +79,12 @@ export class ProcessHistoryComponent implements OnDestroy {
   /** Opciones de estado para el filtro */
   readonly statusOptions = [
     { value: '', label: 'Todos los estados' },
-    { value: 'COMPLETED', label: 'Completado' },
-    { value: 'PROCESSING', label: 'Procesando' },
-    { value: 'FAILED', label: 'Fallido' },
-    { value: 'PENDING', label: 'Pendiente' }
+    { value: 'CON ERRORES', label: 'CON ERRORES' },
+    { value: 'SIN ERRORES', label: 'CON ERRORES' }
   ];
 
   /** Tamaño de página actual */
-  pageSize = 10;
-  
-  /** Opciones disponibles de tamaño de página */
-  readonly pageSizeOptions = [5, 10, 25];
+  pageSize = 5;
   
   /** Índice de página actual (0-based) */
   currentPage = 0;
@@ -119,7 +108,6 @@ export class ProcessHistoryComponent implements OnDestroy {
   ) {
     this.processes$ = this.processesSubject$.asObservable();
     
-    // Detectar cambios en filtros
     this.filterStatus$
       .pipe(
         tap(() => {
@@ -145,6 +133,7 @@ export class ProcessHistoryComponent implements OnDestroy {
 
   /**
    * Carga los procesos del servidor
+   * Soporta load more concatenando resultados
    * 
    * @private
    */
@@ -156,8 +145,18 @@ export class ProcessHistoryComponent implements OnDestroy {
       .getAllProcesses(this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          // Aplicar filtros locales si es necesario
-          const filteredData = this.applyLocalFilters(data);
+          let resultData = data;
+          
+          // Si es una carga adicional (load more), concatenar con datos existentes
+          if (this.currentPage > 0) {
+            const current = this.processesSubject$.value;
+            resultData = {
+              ...data,
+              content: [...current.content, ...data.content]
+            };
+          }
+          
+          const filteredData = this.applyLocalFilters(resultData);
           this.processesSubject$.next(filteredData);
           this.isLoading$.next(false);
           this.cdr.markForCheck();
@@ -176,6 +175,7 @@ export class ProcessHistoryComponent implements OnDestroy {
 
   /**
    * Aplica filtros locales a los datos de procesos
+   * Nota: Los filtros se aplican solo visualmente sin afectar paginación real
    * 
    * @param data - Datos paginados originales
    * @private
@@ -200,8 +200,6 @@ export class ProcessHistoryComponent implements OnDestroy {
     return {
       ...data,
       content: filtered,
-      totalElements: filtered.length,
-      totalPages: Math.ceil(filtered.length / this.pageSize),
       empty: filtered.length === 0
     };
   }
@@ -225,6 +223,31 @@ export class ProcessHistoryComponent implements OnDestroy {
   }
 
   /**
+   * Navega a la vista de todos los clientes
+   */
+  viewAllClients(): void {
+    this.router.navigate(['/clientes']);
+  }
+
+  /**
+   * Carga más procesos (página siguiente)
+   */
+  loadMore(): void {
+    this.currentPage++;
+    this.loadProcesses();
+  }
+
+  /**
+   * Verifica si hay más procesos para cargar
+   */
+  canLoadMoreProcesses(processes: PaginatedResponse<BulkLoadProcess>): boolean {
+    if (!processes || !processes.content) {
+      return false;
+    }
+    return processes.content.length < processes.totalElements;
+  }
+
+  /**
    * Maneja cambio de página en el paginador
    * 
    * @param event - Evento de cambio de página
@@ -236,54 +259,17 @@ export class ProcessHistoryComponent implements OnDestroy {
   }
 
   /**
-   * Abre modal con detalles del proceso
+   * Abre modal consolidada con información, errores y clientes
    * 
    * @param processId - ID del proceso a mostrar
    */
-  viewDetails(processId: string): void {
-    this.dialog.open(ProcessDetailsDialogComponent, {
-      width: '90%',
-      maxWidth: '900px',
+  viewInfo(processId: string): void {
+    this.dialog.open(ProcessInfoDialogComponent, {
+      width: '95%',
+      maxWidth: '1000px',
+      maxHeight: '90vh',
       data: { processId }
     });
-  }
-
-  /**
-   * Abre modal con clientes del proceso
-   * 
-   * @param processId - ID del proceso
-   */
-  viewClients(processId: string): void {
-    // Obtener el primer cliente para mostrar en el modal
-    this.clientService
-      .getClients(processId, 0, 1)
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (response) => {
-          if (response.content && response.content.length > 0) {
-            this.dialog.open(ClientDetailsDialogComponent, {
-              width: '95%',
-              maxWidth: '1000px',
-              data: { clientDetail: response.content[0] }
-            });
-          }
-        },
-        error: () => {
-          // Si falla, navega a la página de clientes
-          this.router.navigate(['/clients', processId]);
-        }
-      });
-  }
-
-  /**
-   * Navega a errores del proceso
-   * 
-   * @param processId - ID del proceso
-   */
-  viewErrors(processId: string): void {
-    this.router.navigate(['/errors', processId]);
   }
 
   /**
@@ -311,6 +297,17 @@ export class ProcessHistoryComponent implements OnDestroy {
    */
   trackByProcessId(_index: number, item: BulkLoadProcess): string {
     return item.processId || '';
+  }
+
+  /**
+   * Calcula el porcentaje de éxito de un proceso
+   */
+  getSuccessPercentage(process: BulkLoadProcess): number {
+    const total = process.totalRecords || 0;
+    const successful = process.successfulCount || 0;
+    
+    if (total === 0) return 0;
+    return Math.round((successful / total) * 100);
   }
 
   /**

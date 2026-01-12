@@ -122,6 +122,31 @@ export class Health implements OnDestroy {
     return status === HealthStatus.UP ? 'check_circle' : 'error_circle';
   }
 
+  /**
+   * Formatea timestamp del servidor
+   */
+  formatTimestamp(timestamp: string | undefined): string {
+    if (!timestamp) return 'N/A';
+    try {
+      // Si el timestamp viene en formato ISO, usarlo directamente
+      if (timestamp.includes('T') || timestamp.includes('-')) {
+        return new Date(timestamp).toLocaleString('es-ES');
+      }
+      // Si viene en formato de array de números separados por comas
+      if (timestamp.includes(',')) {
+        const parts = timestamp.split(',').map(p => parseInt(p.trim()));
+        if (parts.length >= 6) {
+          // [year, month, day, hour, minute, second, nanoseconds]
+          const date = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+          return date.toLocaleString('es-ES');
+        }
+      }
+      return timestamp;
+    } catch {
+      return timestamp;
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

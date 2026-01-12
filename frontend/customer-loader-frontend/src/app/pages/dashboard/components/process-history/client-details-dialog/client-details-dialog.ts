@@ -75,21 +75,29 @@ export class ClientDetailsDialogComponent implements OnInit {
    * Genera datos de ejemplo para historial de pagos
    */
   getPaymentHistory(): any[] {
-    // En un caso real, esto vendría del backend
+    const client = this.clientDetails$.value;
+    if (!client?.account?.accountNumber) {
+      return [];
+    }
+    
+    // TODO: Implementar llamada real al API cuando esté disponible
+    // return this.paymentService.getPaymentHistory(client.account.accountNumber);
+    
+    // Datos de ejemplo basados en la cuenta del cliente
     return [
       {
         date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        amount: 2500000,
+        amount: client.account.payrollValue || 2500000,
         status: 'COMPLETED'
       },
       {
         date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-        amount: 2500000,
+        amount: client.account.payrollValue || 2500000,
         status: 'COMPLETED'
       },
       {
         date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-        amount: 2500000,
+        amount: client.account.payrollValue || 2500000,
         status: 'COMPLETED'
       }
     ];

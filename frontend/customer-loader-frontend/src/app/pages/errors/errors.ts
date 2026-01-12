@@ -18,7 +18,6 @@ import { PaginatedResponse, BulkLoadError } from '../../models';
  * 
  * Características:
  * - Tabla con 5 columnas (Línea, Campo, Código, Mensaje, ID)
- * - Paginación (5, 10, 25 registros)
  * - Estados: cargando, vacío, error
  * - TrackBy para optimización de renderizado
  */
@@ -61,7 +60,7 @@ export class Errors implements OnDestroy {
   ];
 
   /** Tamaño de página actual */
-  pageSize = 10;
+  pageSize = 5;
   
   /** Opciones disponibles de tamaño de página */
   readonly pageSizeOptions = [5, 10, 25];
@@ -128,7 +127,15 @@ export class Errors implements OnDestroy {
       .getErrors(processId, this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          this.errorsSubject$.next(data);
+          if (this.currentPage === 0) {
+            this.errorsSubject$.next(data);
+          } else {
+            const current = this.errorsSubject$.value;
+            this.errorsSubject$.next({
+              ...data,
+              content: [...current.content, ...data.content]
+            });
+          }
           this.isLoading$.next(false);
         }),
         catchError(error => {
@@ -138,6 +145,27 @@ export class Errors implements OnDestroy {
           return of(this.createEmptyResponse());
         })
       );
+  }
+
+  /**
+   * Carga más errores
+   */
+  loadMore(): void {
+    this.currentPage++;
+    const processId = this.processId$.value;
+    if (processId) {
+      this.loadErrorsInternal(processId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
+  }
+
+  /**
+   * Verifica si hay más errores para cargar
+   */
+  canLoadMore(errors: PaginatedResponse<BulkLoadError>): boolean {
+    if (!errors || !errors.content) return false;
+    return errors.content.length < errors.totalElements;
   }
 
   /**

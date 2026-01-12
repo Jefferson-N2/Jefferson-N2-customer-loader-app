@@ -182,10 +182,10 @@ export class BulkLoadComponent implements OnDestroy {
     const message = `✓ Carga completada: ${response.successCount} clientes creados`;
     this.showNotification(message, 'success');
 
-    // Navegar a resultados después de mostrar el mensaje
+    // Limpiar después de mostrar el mensaje
     setTimeout(() => {
-      this.router.navigate(['/dashboard/clients', response.processId]);
-    }, 2000);
+      this.clearFile();
+    }, 3000);
   }
 
   /**

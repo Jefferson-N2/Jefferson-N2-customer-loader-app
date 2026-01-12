@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, Subject, timer } from 'rxjs';
 import { map, takeUntil, switchMap } from 'rxjs/operators';
 import { HealthService } from '../../services/health';
@@ -11,7 +13,7 @@ import { HealthStatus } from '../../shared/constants';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule],
+  imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

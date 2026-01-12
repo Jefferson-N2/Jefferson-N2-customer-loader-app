@@ -55,7 +55,6 @@ export class BulkLoadService {
       return throwError(() => new Error('Archivo no proporcionado'));
     }
 
-    // Construir URL con fileName como query parameter
     const url = `${this.apiUrl}/clients?fileName=${encodeURIComponent(file.name)}`;
 
     return this.http.post<BulkLoadResponse>(

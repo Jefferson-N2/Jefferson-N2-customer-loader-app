@@ -24,6 +24,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'clientes',
+    loadComponent: () => import('./pages/dashboard/components/all-clients/all-clients').then(m => m.AllClientsComponent),
+    data: { title: 'Todos los Clientes' }
+  },
+  {
     path: 'health',
     loadComponent: () => import('./pages/health/health').then(m => m.Health),
     data: { title: 'Estado de Salud del Sistema' }

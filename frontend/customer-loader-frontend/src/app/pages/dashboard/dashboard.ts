@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { BulkLoadComponent } from './components/bulk-load/bulk-load';
 import { ProcessHistoryComponent } from './components/process-history/process-history';
 
@@ -20,6 +21,7 @@ import { ProcessHistoryComponent } from './components/process-history/process-hi
     CommonModule,
     RouterModule,
     MatIconModule,
+    MatButtonModule,
     BulkLoadComponent,
     ProcessHistoryComponent
   ],
@@ -27,4 +29,7 @@ import { ProcessHistoryComponent } from './components/process-history/process-hi
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Dashboard {}
+export class Dashboard {
+  constructor(private readonly router: Router) {}
+}
+

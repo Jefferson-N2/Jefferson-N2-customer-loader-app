@@ -111,7 +111,7 @@
         </div>
         <div class="detail-row">
           <span class="label">Timestamp del servidor:</span>
-          <span class="value">{{ health.timestamp | date: 'short' }}</span>
+          <span class="value">{{ formatTimestamp(health.timestamp) }}</span>
         </div>
         <div class="detail-row auto-refresh" role="status">
           <mat-icon

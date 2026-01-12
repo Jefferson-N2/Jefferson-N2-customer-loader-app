@@ -1,7 +1,6 @@
 <div class="clients-container" role="main">
   <!-- Encabezado -->
   <div class="clients-header">
-    <h1 id="clients-title">Clientes Cargados</h1>
     <button
       mat-raised-button
       color="primary"
@@ -13,52 +12,19 @@
     </button>
   </div>
 
-  <!-- Información del Proceso -->
-  <mat-card
-    class="process-info"
-    *ngIf="processId$ | async as processId"
-    role="region"
-    aria-label="Información del proceso de carga"
-  >
-    <mat-card-content>
-      <span class="label">Proceso ID:</span>
-      <span class="value" role="status">{{ processId }}</span>
-    </mat-card-content>
-  </mat-card>
-
   <!-- Tabla de Clientes -->
   <div
     class="clients-table-container"
     *ngIf="clients$ | async as clients"
     role="region"
-    aria-labelledby="clients-title"
+    aria-labelledby="clients-titles"
   >
-    <!-- Estado de carga -->
-    <div *ngIf="isLoading$ | async" class="loading-state">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Cargando clientes...</p>
-    </div>
-
-    <!-- Estado vacío -->
-    <div *ngIf="!((isLoading$ | async)) && clients.empty" class="empty-state">
-      <mat-icon>folder_open</mat-icon>
-      <p>No hay clientes cargados en este proceso</p>
-    </div>
-
-    <!-- Estado de error -->
-    <div *ngIf="error$ | async as error" class="error-state">
-      <mat-icon>error_outline</mat-icon>
-      <p>{{ error }}</p>
-    </div>
-
-    <!-- Tabla -->
     <table
-      *ngIf="!clients.empty && !(isLoading$ | async)"
       mat-table
       [dataSource]="clients.content"
       class="clients-table"
       role="grid"
-      aria-label="Tabla de clientes cargados"
+      aria-label="Tabla de todos los clientes cargados"
     >
       <!-- Columna: Código Cliente -->
       <ng-container matColumnDef="clientCode">
@@ -66,7 +32,7 @@
         <td mat-cell *matCellDef="let element">{{ element.clientCode }}</td>
       </ng-container>
 
-      <!-- Columna: Nombre -->
+      <!-- Columna: Nombre Completo -->
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef scope="col">Nombre</th>
         <td mat-cell *matCellDef="let element">
@@ -74,9 +40,15 @@
         </td>
       </ng-container>
 
-      <!-- Columna: ID -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef scope="col">ID</th>
+      <!-- Columna: Tipo ID -->
+      <ng-container matColumnDef="idType">
+        <th mat-header-cell *matHeaderCellDef scope="col">Tipo ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.idType }}</td>
+      </ng-container>
+
+      <!-- Columna: Número ID -->
+      <ng-container matColumnDef="idNumber">
+        <th mat-header-cell *matHeaderCellDef scope="col">Número ID</th>
         <td mat-cell *matCellDef="let element">{{ element.idNumber }}</td>
       </ng-container>
 
@@ -89,18 +61,18 @@
       </ng-container>
 
       <!-- Columna: Teléfono -->
-      <ng-container matColumnDef="phone">
+      <ng-container matColumnDef="phoneNumber">
         <th mat-header-cell *matHeaderCellDef scope="col">Teléfono</th>
         <td mat-cell *matCellDef="let element">{{ element.phoneNumber }}</td>
       </ng-container>
 
-      <!-- Columna: Estado -->
+      <!-- Columna: Estado Cuenta -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef scope="col">Estado Cuenta</th>
         <td mat-cell *matCellDef="let element">
           <span
             class="status-badge"
-            [ngClass]="'status-' + element.account?.status?.toLowerCase()"
+            [ngClass]="'status-' + (element.account?.status?.toLowerCase() || 'unknown')"
             [attr.aria-label]="'Estado: ' + (element.account?.status || 'N/A')"
           >
             {{ element.account?.status || 'N/A' }}
@@ -108,24 +80,20 @@
         </td>
       </ng-container>
 
-      <!-- Columna: Número de Cuenta -->
-      <ng-container matColumnDef="accountNumber">
-        <th mat-header-cell *matHeaderCellDef scope="col">Número de Cuenta</th>
+      <!-- Columna: Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef scope="col">Acciones</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.account?.accountNumber || 'N/A' }}
-        </td>
-      </ng-container>
-
-      <!-- Columna: Valor Nómina -->
-      <ng-container matColumnDef="payrollValue">
-        <th mat-header-cell *matHeaderCellDef scope="col">Valor Nómina</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="payroll-value">
-            {{ element.account?.payrollValue !== undefined && element.account?.payrollValue !== null 
-              ? (element.account.payrollValue | currency:'':'symbol':'1.2-2')
-              : 'N/A'
-            }}
-          </span>
+          <div class="actions">
+            <button
+              mat-icon-button
+              matTooltip="Ver detalles completos"
+              (click)="viewDetails(element)"
+              aria-label="Ver detalles completos del cliente"
+            >
+              <mat-icon>info</mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -137,7 +105,7 @@
       ></tr>
       <tr
         mat-row
-        *matRowDef="let row; columns: displayedColumns; trackBy: trackByClientCode"
+        *matRowDef="let row; columns: displayedColumns"
         role="row"
       ></tr>
     </table>
@@ -166,9 +134,41 @@
         {{ (isLoading$ | async) ? 'Cargando...' : 'Cargar más' }}
       </button>
     </div>
-
   </div>
 
+  <!-- Cargando -->
+  <div
+    class="loading"
+    *ngIf="isLoading$ | async"
+    role="status"
+    aria-label="Cargando clientes"
+  >
+    <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
+    <p>Cargando clientes...</p>
+  </div>
 
+  <!-- Vacío -->
+  <ng-container *ngIf="clients$ | async as clients">
+    <ng-container *ngIf="clients.content && clients.content.length === 0 && !(isLoading$ | async)">
+      <mat-card
+        class="empty-state"
+        role="status"
+      >
+        <mat-card-content>
+          <mat-icon class="empty-icon" aria-hidden="true">people_outline</mat-icon>
+          <h3>No hay clientes</h3>
+          <p>No se encontraron clientes en el sistema</p>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
+  </ng-container>
+
+  <!-- Error -->
+  <mat-card class="error-state" *ngIf="error$ | async as error" role="alert">
+    <mat-card-content>
+      <mat-icon class="error-icon" aria-hidden="true">error</mat-icon>
+      <h3>Error al cargar clientes</h3>
+      <p>{{ error }}</p>
+    </mat-card-content>
+  </mat-card>
 </div>
-

@@ -67,7 +67,7 @@ export class ClientService {
       .set('size', size.toString());
 
     return this.http.get<PaginatedResponse<ClientDetail>>(
-      this.apiUrl + `/${processId}`,
+      `${environment.apiBaseUrl}/processes/${processId}/clients`,
       { params }
     ).pipe(
       timeout(this.requestTimeout),

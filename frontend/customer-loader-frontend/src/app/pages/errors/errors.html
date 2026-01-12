@@ -95,15 +95,30 @@
       ></tr>
     </table>
 
-    <!-- Paginador -->
-    <mat-paginator
-      [length]="errors.totalElements"
-      [pageSize]="pageSize"
-      [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)"
-      showFirstLastButtons
-      aria-label="Paginación de errores"
-    ></mat-paginator>
+    <!-- Información de paginación y botón Load More -->
+    <div class="pagination-info" *ngIf="errors.content.length > 0">
+      <span class="info-text">
+        Mostrando {{ errors.content.length }} de {{ errors.totalElements }} errores
+      </span>
+      
+      <button
+        *ngIf="canLoadMore(errors)"
+        mat-raised-button
+        color="primary"
+        (click)="loadMore()"
+        [disabled]="isLoading$ | async"
+        aria-label="Cargar más errores"
+        class="load-more-btn"
+      >
+        <mat-icon *ngIf="!(isLoading$ | async)">add</mat-icon>
+        <mat-spinner 
+          *ngIf="isLoading$ | async" 
+          diameter="20" 
+          aria-hidden="true">
+        </mat-spinner>
+        {{ (isLoading$ | async) ? 'Cargando...' : 'Cargar más' }}
+      </button>
+    </div>
   </div>
 
   <!-- Cargando -->

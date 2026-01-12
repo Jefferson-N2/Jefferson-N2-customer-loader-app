@@ -67,7 +67,7 @@ export class Clients implements OnDestroy {
   pageSize = 10;
   
   /** Opciones disponibles de tamaño de página */
-  readonly pageSizeOptions = [5, 10, 25];
+  readonly pageSizeOptions = [5, 10, 25, 50];
   
   /** Índice de página actual (0-based) */
   currentPage = 0;
@@ -119,7 +119,7 @@ export class Clients implements OnDestroy {
   }
 
   /**
-   * Carga los clientes del servidor
+   * Carga los clientes del servidor con soporte para load more
    * 
    * @private
    */
@@ -131,7 +131,17 @@ export class Clients implements OnDestroy {
       .getClients(processId, this.currentPage, this.pageSize)
       .pipe(
         tap(data => {
-          this.clientsSubject$.next(data);
+          // Si es la primera página o estamos cargando de nuevo, reemplazar
+          if (this.currentPage === 0) {
+            this.clientsSubject$.next(data);
+          } else {
+            // Si es load more, concatenar con los datos existentes
+            const current = this.clientsSubject$.value;
+            this.clientsSubject$.next({
+              ...data,
+              content: [...current.content, ...data.content]
+            });
+          }
           this.isLoading$.next(false);
         }),
         catchError(error => {
@@ -158,6 +168,27 @@ export class Clients implements OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe();
     }
+  }
+
+  /**
+   * Carga más clientes (página siguiente)
+   */
+  loadMore(): void {
+    this.currentPage++;
+    const processId = this.processId$.value;
+    if (processId) {
+      this.loadClientsInternal(processId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
+  }
+
+  /**
+   * Verifica si hay más clientes para cargar
+   */
+  canLoadMore(clients: PaginatedResponse<ClientDetail>): boolean {
+    if (!clients || !clients.content) return false;
+    return clients.content.length < clients.totalElements;
   }
 
   /**

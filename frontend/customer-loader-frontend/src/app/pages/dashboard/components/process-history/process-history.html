@@ -1,25 +1,23 @@
 <div class="history-container" role="main">
   <!-- Encabezado -->
   <div class="history-header">
-    <h2 id="history-title">Historial de Cargas</h2>
+    <div class="header-content">
+      <h2 id="history-title">Historial de Cargas</h2>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="viewAllClients()"
+        aria-label="Ver todos los clientes"
+      >
+        <mat-icon>people</mat-icon>
+        Ver todos los clientes
+      </button>
+    </div>
   </div>
 
   <!-- Filtros -->
   <div class="filters-section" role="search" aria-label="Filtros de búsqueda">
     <div class="filters-row">
-      <mat-form-field class="filter-field">
-        <mat-label>Estado</mat-label>
-        <mat-select
-          [value]="filterStatus$ | async"
-          (selectionChange)="filterStatus$.next($event.value)"
-          aria-label="Filtrar por estado"
-        >
-          <mat-option *ngFor="let option of statusOptions" [value]="option.value">
-            {{ option.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
       <mat-form-field class="filter-field">
         <mat-label>Nombre de archivo</mat-label>
         <input
@@ -31,26 +29,6 @@
         />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
-
-      <div class="filter-actions">
-        <button
-          mat-raised-button
-          color="accent"
-          (click)="reloadProcesses()"
-          aria-label="Recargar procesos"
-        >
-          <mat-icon>refresh</mat-icon>
-          Recargar
-        </button>
-        <button
-          mat-stroked-button
-          (click)="clearFilters()"
-          aria-label="Limpiar filtros"
-        >
-          <mat-icon>clear</mat-icon>
-          Limpiar filtros
-        </button>
-      </div>
     </div>
   </div>
 
@@ -68,61 +46,28 @@
       role="grid"
       aria-label="Tabla de historial de procesos de carga"
     >
-      <!-- Columna: ID Proceso -->
-      <ng-container matColumnDef="processId">
-        <th mat-header-cell *matHeaderCellDef scope="col">ID Proceso</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="process-id" [title]="element.processId">{{ element.processId }}</span>
-        </td>
-      </ng-container>
-
       <!-- Columna: Nombre Archivo -->
       <ng-container matColumnDef="fileName">
         <th mat-header-cell *matHeaderCellDef scope="col">Archivo</th>
         <td mat-cell *matCellDef="let element">{{ element.fileName }}</td>
       </ng-container>
 
-      <!-- Columna: Total Registros -->
-      <ng-container matColumnDef="totalRecords">
-        <th mat-header-cell *matHeaderCellDef scope="col">Total</th>
-        <td mat-cell *matCellDef="let element">{{ element.totalRecords }}</td>
-      </ng-container>
-
-      <!-- Columna: Exitosos -->
-      <ng-container matColumnDef="successfulCount">
-        <th mat-header-cell *matHeaderCellDef scope="col">Exitosos</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="count count-success">{{ element.successfulCount }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Columna: Errores -->
-      <ng-container matColumnDef="errorCount">
-        <th mat-header-cell *matHeaderCellDef scope="col">Errores</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="count count-error">{{ element.errorCount }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Columna: Fecha -->
-      <ng-container matColumnDef="processingDate">
-        <th mat-header-cell *matHeaderCellDef scope="col">Fecha</th>
-        <td mat-cell *matCellDef="let element">
-          {{ formatDate(element.processingDate) }}
-        </td>
-      </ng-container>
-
       <!-- Columna: Estado -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef scope="col">Estado</th>
         <td mat-cell *matCellDef="let element">
-          <span
-            class="status-badge"
-            [ngClass]="'status-' + (element.status?.toLowerCase() || 'pending')"
-            [attr.aria-label]="'Estado: ' + (element.status || 'N/A')"
-          >
-            {{ element.status || 'PENDING' }}
-          </span>
+          <div class="status-container">
+            <span
+              class="status-badge"
+              [ngClass]="'status-' + (element.status?.toLowerCase() || 'pending')"
+              [attr.aria-label]="'Estado: ' + (element.errorCount === 0 ? 'Sin errores' : 'Con errores')"
+            >
+              {{ element.errorCount === 0 ? 'Sin errores' : 'Con errores' }}
+            </span>
+            <span class="success-percentage" [ngClass]="getSuccessPercentage(element) >= 80 ? 'high' : (getSuccessPercentage(element) >= 50 ? 'medium' : 'low')">
+              {{ getSuccessPercentage(element) }}% éxito
+            </span>
+          </div>
         </td>
       </ng-container>
 
@@ -133,29 +78,11 @@
           <div class="actions">
             <button
               mat-icon-button
-              matTooltip="Ver detalles"
-              (click)="viewDetails(element.processId)"
-              aria-label="Ver detalles del proceso"
+              matTooltip="Ver información"
+              (click)="viewInfo(element.processId)"
+              aria-label="Ver información del proceso"
             >
               <mat-icon>info</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              matTooltip="Ver clientes cargados"
-              (click)="viewClients(element.processId)"
-              aria-label="Ver clientes cargados del proceso"
-              *ngIf="element.successfulCount > 0"
-            >
-              <mat-icon>people</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              matTooltip="Ver errores"
-              (click)="viewErrors(element.processId)"
-              aria-label="Ver errores del proceso"
-              *ngIf="element.errorCount > 0"
-            >
-              <mat-icon>error</mat-icon>
             </button>
           </div>
         </td>
@@ -169,21 +96,37 @@
       ></tr>
       <tr
         mat-row
-        *matRowDef="let row; columns: displayedColumns; trackBy: trackByProcessId"
+        *matRowDef="let row; columns: displayedColumns"
         [attr.data-test]="'process-row-' + row.processId"
         role="row"
       ></tr>
     </table>
 
-    <!-- Paginador -->
-    <mat-paginator
-      [length]="processes.totalElements"
-      [pageSize]="pageSize"
-      [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)"
-      showFirstLastButtons
-      aria-label="Paginación de procesos"
-    ></mat-paginator>
+    <!-- Información de paginación y botón Load More -->
+    <div class="pagination-info" *ngIf="processes.content.length > 0">
+      <span class="info-text">
+        Mostrando {{ processes.content.length }} de {{ processes.totalElements }} procesos
+      </span>
+      
+      <button
+        *ngIf="canLoadMoreProcesses(processes)"
+        mat-raised-button
+        color="primary"
+        (click)="loadMore()"
+        [disabled]="isLoading$ | async"
+        aria-label="Cargar más procesos"
+        class="load-more-btn"
+      >
+        <mat-icon *ngIf="!(isLoading$ | async)">add</mat-icon>
+        <mat-spinner 
+          *ngIf="isLoading$ | async" 
+          diameter="20" 
+          aria-hidden="true">
+        </mat-spinner>
+        {{ (isLoading$ | async) ? 'Cargando...' : 'Cargar más' }}
+      </button>
+    </div>
+  
   </div>
 
   <!-- Cargando -->

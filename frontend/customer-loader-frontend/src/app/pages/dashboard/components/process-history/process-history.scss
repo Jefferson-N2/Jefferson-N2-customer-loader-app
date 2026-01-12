@@ -6,13 +6,34 @@
 
 .history-header {
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
 
   h2 {
     margin: 0;
     font-size: 24px;
     font-weight: 600;
     color: #333;
+    flex-shrink: 0;
   }
+
+  button {
+    flex-shrink: 0;
+  }
+}
+
+.error-icon {
+  color: #e65100 !important;
 }
 
 .filters-section {
@@ -84,6 +105,63 @@
   mat-paginator {
     border-top: 1px solid #e0e0e0;
   }
+
+  .load-more-section {
+    padding: 16px;
+    display: flex !important;
+    justify-content: center;
+    border-top: 1px solid #e0e0e0;
+    background: #fafbfc;
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    .load-more-button {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 8px 16px;
+      visibility: visible !important;
+    }
+  }
+}
+
+.pagination-info {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e0e0e0;
+  background: #fafbfc;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .info-text {
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .load-more-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    mat-spinner {
+      margin: 0;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
 }
 
 .process-id {
@@ -140,6 +218,38 @@
   &.status-pending {
     background: #e3f2fd;
     color: #1565c0;
+  }
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .success-percentage {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1976d2;
+
+    &.high {
+      background: #c8e6c9;
+      color: #2e7d32;
+    }
+
+    &.medium {
+      background: #fff9c4;
+      color: #f57f17;
+    }
+
+    &.low {
+      background: #ffccbc;
+      color: #d84315;
+    }
   }
 }
 

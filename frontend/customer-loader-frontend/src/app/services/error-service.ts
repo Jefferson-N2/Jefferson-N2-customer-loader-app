@@ -14,7 +14,7 @@ import { BulkLoadError, PaginatedResponse } from '../models';
   providedIn: 'root'
 })
 export class ErrorService {
-  private readonly apiUrl = `${environment.apiBaseUrl}/errors`;
+  private readonly apiUrl = `${environment.apiBaseUrl}/processes`;
   private readonly requestTimeout = environment.apiTimeout;
 
   constructor(private readonly http: HttpClient) {}
@@ -39,12 +39,11 @@ export class ErrorService {
     }
 
     const params = new HttpParams()
-      .set('processId', processId)
       .set('page', page.toString())
       .set('size', size.toString());
 
     return this.http.get<PaginatedResponse<BulkLoadError>>(
-      this.apiUrl,
+      `${this.apiUrl}/${processId}/errors`,
       { params }
     ).pipe(
       timeout(this.requestTimeout),
