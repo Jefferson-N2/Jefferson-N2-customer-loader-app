@@ -46,7 +46,7 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
     public Optional<Account> findByClientId(Long clientId) {
         List<AccountEntity> entities = entityManager.createQuery(
                         "SELECT a FROM AccountEntity a " +
-                                "WHERE a.client.id = :clientId", AccountEntity.class)
+                                "WHERE a.clientId = :clientId", AccountEntity.class)
                 .setParameter("clientId", clientId)
                 .getResultList();
         return entities.stream()

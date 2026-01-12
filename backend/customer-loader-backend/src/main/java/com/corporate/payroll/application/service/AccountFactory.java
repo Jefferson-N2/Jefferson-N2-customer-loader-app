@@ -31,14 +31,14 @@ public class AccountFactory {
     public String generateUniqueAccountNumber() {
         try {
             Long lastNumber = accountRepository.getLastAccountNumber();
-            Long nextNumber = (lastNumber != null) ? lastNumber + 1 : 1000000L;
+            Long nextNumber = (lastNumber != null) ? lastNumber + 1 : 1000000000L;
             
             String accountNumber = String.valueOf(nextNumber);
             log.debug("Número de cuenta generado: {}", accountNumber);
             return accountNumber;
         } catch (Exception e) {
             log.error("Error generando número de cuenta: {}", e.getMessage(), e);
-            return String.valueOf(System.currentTimeMillis() % 1000000000L);
+            return String.valueOf(1000000000L + (System.currentTimeMillis() % 1000000000L));
         }
     }
 }

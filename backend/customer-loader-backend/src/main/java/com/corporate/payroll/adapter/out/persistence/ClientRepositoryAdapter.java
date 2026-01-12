@@ -2,6 +2,8 @@ package com.corporate.payroll.adapter.out.persistence;
 
 import com.corporate.payroll.application.port.out.ClientRepositoryPort;
 import com.corporate.payroll.domain.model.Client;
+import com.corporate.payroll.domain.model.Account;
+import com.corporate.payroll.domain.model.PayrollPayment;
 import com.corporate.payroll.adapter.out.persistence.entity.ClientEntity;
 import com.corporate.payroll.adapter.out.persistence.mapper.ClientPersistenceMapper;
 import com.corporate.payroll.adapter.out.persistence.mapper.AccountPersistenceMapper;
@@ -94,19 +96,13 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
 
     @Override
     public List<Client> findByProcessId(String processId, int page, int size) {
-        log.debug("Buscando clientes para proceso: {} (página: {}, tamaño: {})", 
-            processId, page, size);
         List<ClientEntity> entities = entityManager.createQuery(
-                "SELECT c FROM ClientEntity c WHERE c.processId = :processId " +
-                "ORDER BY c.id DESC",
+                "SELECT c FROM ClientEntity c WHERE c.processId = :processId ORDER BY c.id DESC",
                 ClientEntity.class)
                 .setParameter("processId", processId)
                 .setFirstResult(page * size)
                 .setMaxResults(size)
                 .getResultList();
-        
-        log.info("Se encontraron {} clientes para el proceso {}", 
-            entities.size(), processId);
         
         return entities.stream()
                 .map(clientMapper::toModel)

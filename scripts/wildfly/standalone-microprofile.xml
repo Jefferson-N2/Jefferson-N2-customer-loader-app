@@ -1,0 +1,5 @@
+<subsystem xmlns="urn:wildfly:microprofile-openapi-smallrye:2.0">
+    <servers>
+        <server name="default" />
+    </servers>
+</subsystem>

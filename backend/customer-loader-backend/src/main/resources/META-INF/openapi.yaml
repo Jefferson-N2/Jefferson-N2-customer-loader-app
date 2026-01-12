@@ -1,126 +1,31 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Customer Loader API
-  description: API para carga masiva de clientes y gestión de nómina
   version: 1.0.0
-  contact:
-    name: Equipo de Desarrollo
-
+  description: API para carga masiva de clientes y gestión de nómina
 servers:
-  - url: http://localhost:8080/customer-loader-backend/api
-    description: Desarrollo
-  - url: /customer-loader-backend/api
-    description: Producción
+  - url: http://localhost:8081/customer-loader-backend/api
+    description: Development
 
 paths:
   /health:
     get:
       tags:
-        - Health Check
-      summary: Verificar estado del servicio
+        - Health
+      summary: Health check
       responses:
         '200':
-          description: Servicio funcionando correctamente
-        '503':
-          description: Servicio no disponible
-
-  /bulk-load/clients:
-    post:
-      tags:
-        - Carga Masiva
-      summary: Cargar archivo de clientes
-      parameters:
-        - name: fileName
-          in: query
-          required: true
-          schema:
-            type: string
-          description: Nombre del archivo
-      requestBody:
-        required: true
-        content:
-          text/plain:
-            schema:
-              type: string
-              example: "C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845"
-      responses:
-        '200':
-          description: Archivo procesado exitosamente
-        '400':
-          description: Error en el archivo o parámetros
-
-  /processes/{processId}/details:
-    get:
-      tags:
-        - Procesos
-      summary: Obtener detalles de un proceso
-      parameters:
-        - name: processId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Detalles del proceso
-        '404':
-          description: Proceso no encontrado
-
-  /processes/{processId}/errors:
-    get:
-      tags:
-        - Procesos
-      summary: Obtener errores de un proceso
-      parameters:
-        - name: processId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: Lista de errores del proceso
-
-  /processes/{processId}/clients:
-    get:
-      tags:
-        - Procesos
-      summary: Obtener clientes de un proceso
-      parameters:
-        - name: processId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: Lista paginada de clientes del proceso
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
 
   /clients:
     get:
       tags:
-        - Clientes
-      summary: Listar todos los clientes
+        - Clients
+      summary: Get all clients
       parameters:
         - name: page
           in: query
@@ -131,39 +36,111 @@ paths:
           in: query
           schema:
             type: integer
-            default: 20
+            default: 10
       responses:
         '200':
-          description: Lista paginada de clientes
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResponse'
 
-  /clients/code/{clientCode}:
+  /clients/{id}:
     get:
       tags:
-        - Clientes
-      summary: Obtener cliente por código
+        - Clients
+      summary: Get client by ID
       parameters:
-        - name: clientCode
+        - name: id
           in: path
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
-          description: Detalle del cliente
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
         '404':
-          description: Cliente no encontrado
+          description: Client not found
 
-  /errors/{processId}:
+  /accounts/client/{clientId}:
     get:
       tags:
-        - Errores
-      summary: Obtener errores por proceso
+        - Accounts
+      summary: Get account by client ID
       parameters:
-        - name: processId
+        - name: clientId
           in: path
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+
+  /accounts/client/{accountId}/first-payment:
+    get:
+      tags:
+        - Accounts
+      summary: Get first payment by account ID
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayrollPayment'
+        '404':
+          description: Payment not found
+
+  /bulk-load:
+    post:
+      tags:
+        - Bulk Load
+      summary: Upload clients file
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkLoadResponse'
+        '400':
+          description: Invalid file format
+
+  /processes:
+    get:
+      tags:
+        - Processes
+      summary: Get all processes
+      parameters:
         - name: page
           in: query
           schema:
@@ -173,7 +150,195 @@ paths:
           in: query
           schema:
             type: integer
-            default: 50
+            default: 10
       responses:
         '200':
-          description: Lista de errores
+          description: List of processes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResponse'
+
+  /processes/{id}:
+    get:
+      tags:
+        - Processes
+      summary: Get process by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Process details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkLoadProcess'
+
+  /errors:
+    get:
+      tags:
+        - Errors
+      summary: Get all errors
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "UP"
+        timestamp:
+          type: string
+          format: date-time
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        idType:
+          type: string
+          enum: [C, P]
+        idNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        payrollValue:
+          type: number
+          format: double
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountNumber:
+          type: string
+        balance:
+          type: number
+          format: double
+        status:
+          type: string
+        clientId:
+          type: integer
+          format: int64
+
+    PayrollPayment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountId:
+          type: integer
+          format: int64
+        paymentDate:
+          type: string
+          format: date
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+
+    BulkLoadProcess:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        fileName:
+          type: string
+        status:
+          type: string
+        totalRecords:
+          type: integer
+        processedRecords:
+          type: integer
+        errorRecords:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+
+    BulkLoadResponse:
+      type: object
+      properties:
+        processId:
+          type: integer
+          format: int64
+        message:
+          type: string
+        status:
+          type: string
+
+    PagedResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            type: object
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string

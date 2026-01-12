@@ -2,14 +2,8 @@ package com.corporate.payroll.adapter.in.web.rest;
 
 import com.corporate.payroll.adapter.in.web.service.PaginationService;
 import com.corporate.payroll.application.port.out.ClientRepositoryPort;
-import com.corporate.payroll.application.port.out.AccountRepositoryPort;
-import com.corporate.payroll.application.port.out.PayrollPaymentRepositoryPort;
 import com.corporate.payroll.adapter.in.web.dto.PagedResponseDto;
-import com.corporate.payroll.adapter.in.web.dto.ClientDetailDto;
-import com.corporate.payroll.adapter.in.web.mapper.ClientDetailMapper;
 import com.corporate.payroll.domain.model.Client;
-import com.corporate.payroll.domain.model.Account;
-import com.corporate.payroll.domain.model.PayrollPayment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,15 +26,6 @@ public class ClientResource {
     private ClientRepositoryPort clientRepository;
     
     @Inject
-    private AccountRepositoryPort accountRepository;
-    
-    @Inject
-    private PayrollPaymentRepositoryPort paymentRepository;
-    
-    @Inject
-    private ClientDetailMapper clientDetailMapper;
-    
-    @Inject
     private PaginationService paginationService;
 
     @Operation(
@@ -59,13 +44,10 @@ public class ClientResource {
             @Parameter(description = "Tamaño de página") @QueryParam("size") @DefaultValue("20") int size) {
         
         List<Client> clients = clientRepository.findAll(page, size);
-        List<ClientDetailDto> clientDetails = clients.stream()
-                .map(clientDetailMapper::toDto)
-                .toList();
         long totalElements = clientRepository.countAll();
         
-        PagedResponseDto<ClientDetailDto> response = paginationService.createPagedResponse(
-                clientDetails, totalElements, page, size);
+        PagedResponseDto<Client> response = paginationService.createPagedResponse(
+                clients, totalElements, page, size);
         
         return Response.ok(response).build();
     }
@@ -79,13 +61,10 @@ public class ClientResource {
             @QueryParam("size") @DefaultValue("20") int size) {
         
         List<Client> clients = clientRepository.findByProcessId(processId, page, size);
-        List<ClientDetailDto> clientDetails = clients.stream()
-                .map(clientDetailMapper::toDto)
-                .toList();
         long totalElements = clientRepository.countByProcessId(processId);
         
-        PagedResponseDto<ClientDetailDto> response = paginationService.createPagedResponse(
-                clientDetails, totalElements, page, size);
+        PagedResponseDto<Client> response = paginationService.createPagedResponse(
+                clients, totalElements, page, size);
         
         return Response.ok(response).build();
     }
@@ -103,8 +82,6 @@ public class ClientResource {
                     .build();
         }
         
-        ClientDetailDto clientDetail = clientDetailMapper.toDto(clientOpt.get());
-        
-        return Response.ok(clientDetail).build();
+        return Response.ok(clientOpt.get()).build();
     }
 }

@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @Builder
 public class ClientDetailDto {
     
-    // Client info
     private String clientCode;
     private String idType;
     private String idNumber;
@@ -22,8 +21,6 @@ public class ClientDetailDto {
     private String phoneNumber;
     private LocalDate joinDate;
     private LocalDate birthDate;
-    
-    // Account and payment as separate DTOs
     private AccountDetailDto account;
     private FirstPaymentDto firstPayment;
 }
