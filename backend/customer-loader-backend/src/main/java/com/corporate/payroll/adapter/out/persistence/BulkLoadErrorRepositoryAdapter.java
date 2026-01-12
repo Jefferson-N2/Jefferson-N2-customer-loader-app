@@ -1,7 +1,7 @@
 package com.corporate.payroll.adapter.out.persistence;
 
 import com.corporate.payroll.application.port.out.BulkLoadErrorRepositoryPort;
-import com.corporate.payroll.adapter.in.web.dto.FileSummaryResponseDto;
+// import com.corporate.payroll.adapter.in.web.dto.FileSummaryResponseDto; // UNUSED - Commented out
 import com.corporate.payroll.domain.model.BulkLoadError;
 import com.corporate.payroll.adapter.out.persistence.entity.BulkLoadErrorEntity;
 import com.corporate.payroll.adapter.out.persistence.mapper.BulkLoadErrorPersistenceMapper;
@@ -76,5 +76,17 @@ public class BulkLoadErrorRepositoryAdapter implements BulkLoadErrorRepositoryPo
         return entities.stream()
                 .map(errorMapper::toModel)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countByProcessId(String processId) {
+        log.debug("Contando errores para proceso: {}", processId);
+        Long count = (Long) entityManager.createQuery(
+                "SELECT COUNT(e) FROM BulkLoadErrorEntity e WHERE e.processId = :processId")
+                .setParameter("processId", processId)
+                .getSingleResult();
+        
+        log.debug("Total de errores para proceso {}: {}", processId, count);
+        return count;
     }
 }

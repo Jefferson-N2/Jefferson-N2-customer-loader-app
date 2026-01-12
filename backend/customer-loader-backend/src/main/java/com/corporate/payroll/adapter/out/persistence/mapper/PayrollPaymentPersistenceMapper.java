@@ -11,31 +11,16 @@ import org.mapstruct.Named;
 public interface PayrollPaymentPersistenceMapper {
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "accountId", target = "account", qualifiedByName = "accountIdToEntity")
+    @Mapping(source = "accountId", target = "accountId")
     @Mapping(source = "paymentDate", target = "paymentDate")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "status", target = "status")
     PayrollPaymentEntity toDomainEntity(PayrollPayment payrollPayment);
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "account", target = "accountId", qualifiedByName = "accountToId")
+    @Mapping(source = "accountId", target = "accountId")
     @Mapping(source = "paymentDate", target = "paymentDate")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "status", target = "status")
     PayrollPayment toModel(PayrollPaymentEntity payrollPaymentEntity);
-    
-    @Named("accountIdToEntity")
-    default AccountEntity accountIdToEntity(Long accountId) {
-        if (accountId == null) {
-            return null;
-        }
-        AccountEntity account = new AccountEntity();
-        account.setId(accountId);
-        return account;
-    }
-    
-    @Named("accountToId")
-    default Long accountToId(AccountEntity account) {
-        return account != null ? account.getId() : null;
-    }
 }

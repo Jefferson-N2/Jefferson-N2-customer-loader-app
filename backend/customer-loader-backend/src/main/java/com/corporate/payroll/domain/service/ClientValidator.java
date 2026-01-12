@@ -24,6 +24,14 @@ public class ClientValidator {
         DateTimeFormatter.ofPattern("yyyy-MM-dd", java.util.Locale.ROOT);
 
     /**
+     * Sanitiza entrada del usuario para prevenir XSS
+     */
+    private static String sanitizeInput(String input) {
+        if (input == null) return "null";
+        return input.replaceAll("[<>\"'&]", "_");
+    }
+
+    /**
      * Valida un cliente completo y devuelve lista de TODOS los errores encontrados
      */
     public static List<BulkLoadError> validateClient(String idType, String idNumber, String joinDate,
@@ -32,28 +40,61 @@ public class ClientValidator {
         log.debug("Iniciando validación de cliente en fila: {}", lineNumber);
         List<BulkLoadError> errors = new ArrayList<>();
 
-        errors.add(ValidationUtils.validateNotBlank(idType, "Tipo de identificación", lineNumber));
-        errors.add(ValidationUtils.validatePattern(idType, ID_TYPE_PATTERN,
-                "Tipo de identificación debe ser 'C' (Cédula) o 'P' (Pasaporte)", lineNumber));
+        // Validar Tipo de identificación
+        if (idType == null || idType.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Tipo de identificación", "Campo 'Tipo de identificación' (columna 1): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validatePattern(idType, ID_TYPE_PATTERN,
+                    "Campo 'Tipo de identificación' (columna 1): Debe ser 'C' (Cédula) o 'P' (Pasaporte). Valor encontrado: '" + sanitizeInput(idType) + "'", lineNumber);
+            if (error != null) errors.add(error);
+        }
 
-        errors.add(ValidationUtils.validateNotBlank(idNumber, "Número de identificación", lineNumber));
-        errors.add(ValidationUtils.validatePattern(idNumber, ALPHANUMERIC_PATTERN,
-                "Número de identificación debe ser alfanumérico", lineNumber));
+        // Validar Número de identificación
+        if (idNumber == null || idNumber.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Número de identificación", "Campo 'Número de identificación' (columna 2): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validatePattern(idNumber, ALPHANUMERIC_PATTERN,
+                    "Campo 'Número de identificación' (columna 2): Debe ser alfanumérico. Valor encontrado: '" + sanitizeInput(idNumber) + "'", lineNumber);
+            if (error != null) errors.add(error);
+        }
 
-        errors.add(ValidationUtils.validateNotBlank(joinDate, "Fecha de ingreso", lineNumber));
-        errors.add(ValidationUtils.validateDate(joinDate, DATE_FORMATTER,
-                "Fecha de ingreso debe estar en formato yyyy-MM-dd", lineNumber));
+        // Validar Fecha de ingreso
+        if (joinDate == null || joinDate.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Fecha de ingreso", "Campo 'Fecha de ingreso' (columna 3): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validateDate(joinDate, DATE_FORMATTER,
+                    "Campo 'Fecha de ingreso' (columna 3): Debe estar en formato yyyy-MM-dd. Valor encontrado: '" + sanitizeInput(joinDate) + "'", lineNumber);
+            if (error != null) errors.add(error);
+        }
 
-        errors.add(ValidationUtils.validateNotBlank(payrollValue, "Valor del pago de nómina", lineNumber));
-        errors.add(ValidationUtils.validateNumeric(payrollValue, "Valor del pago de nómina", lineNumber));
+        // Validar Valor del pago de nómina
+        if (payrollValue == null || payrollValue.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Valor del pago de nómina", "Campo 'Valor del pago de nómina' (columna 4): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validateNumeric(payrollValue, "Campo 'Valor del pago de nómina' (columna 4)", lineNumber);
+            if (error != null) {
+                error.setErrorMessage("Campo 'Valor del pago de nómina' (columna 4): Debe contener únicamente valores numéricos. Valor encontrado: '" + sanitizeInput(payrollValue) + "'");
+                errors.add(error);
+            }
+        }
 
-        errors.add(ValidationUtils.validateNotBlank(email, "Correo electrónico", lineNumber));
-        errors.add(ValidationUtils.validatePattern(email, EMAIL_PATTERN,
-                "Correo electrónico no tiene un formato válido", lineNumber));
+        // Validar Correo electrónico
+        if (email == null || email.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Correo electrónico", "Campo 'Correo electrónico' (columna 5): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validatePattern(email, EMAIL_PATTERN,
+                    "Campo 'Correo electrónico' (columna 5): No tiene un formato válido. Valor encontrado: '" + sanitizeInput(email) + "'", lineNumber);
+            if (error != null) errors.add(error);
+        }
 
-        errors.add(ValidationUtils.validateNotBlank(phoneNumber, "Número de celular", lineNumber));
-        errors.add(ValidationUtils.validatePattern(phoneNumber, Pattern.compile("^\\d{10}$"),
-                "Número de celular debe contener exactamente 10 dígitos numéricos", lineNumber));
+        // Validar Número de celular
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            errors.add(ValidationUtils.createFieldError("Número de celular", "Campo 'Número de celular' (columna 6): El campo es requerido", lineNumber));
+        } else {
+            BulkLoadError error = ValidationUtils.validatePattern(phoneNumber, Pattern.compile("^\\d{10}$"),
+                    "Campo 'Número de celular' (columna 6): Debe contener exactamente 10 dígitos numéricos. Valor encontrado: '" + sanitizeInput(phoneNumber) + "'", lineNumber);
+            if (error != null) errors.add(error);
+        }
 
         List<BulkLoadError> filteredErrors = errors.stream()
                 .filter(Objects::nonNull)

@@ -19,4 +19,24 @@ public interface PayrollPaymentRepositoryPort {
      * Obtiene pagos de una cuenta por número de cuenta con paginación
      */
     List<PayrollPayment> findByAccountNumber(String accountNumber, int page, int size);
+    
+    /**
+     * Obtiene todos los pagos con paginación
+     */
+    List<PayrollPayment> findAll(int page, int size);
+    
+    /**
+     * Cuenta el total de pagos
+     */
+    long countAll();
+    
+    /**
+     * Obtiene pagos por ID de cuenta con paginación
+     */
+    List<PayrollPayment> findByAccountId(Long accountId, int page, int size);
+    
+    /**
+     * Cuenta pagos por ID de cuenta
+     */
+    long countByAccountId(Long accountId);
 }

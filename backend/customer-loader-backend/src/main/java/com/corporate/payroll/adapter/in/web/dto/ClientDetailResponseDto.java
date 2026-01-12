@@ -12,15 +12,6 @@ import lombok.NoArgsConstructor;
 public class ClientDetailResponseDto {
     
     private String processId;
-    private String clientCode;
-    private String idType;
-    private String idNumber;
-    private String firstNames;
-    private String lastNames;
-    private String birthDate;
-    private String joinDate;
-    private String email;
-    private String phoneNumber;
-    private ClientAccountDto account;
+    private ClientDetailDto clientDetail;
 }
 

@@ -10,10 +10,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentDto {
+public class AccountDetailDto {
     
-    private Long paymentId;
-    private String date;
-    private BigDecimal amount;
+    private String accountNumber;
+    private BigDecimal balance;
     private String status;
 }

@@ -28,7 +28,6 @@ class ValidationUtilsTest {
         
         assertNotNull(result, "Null value should return error");
         assertTrue(result.getErrorMessage().contains("no puede estar vacío"), "Error message should contain 'no puede estar vacío'");
-        assertEquals("VALIDATION_ERROR", result.getErrorType(), "Error type should be VALIDATION_ERROR");
         assertEquals(ROW_NUMBER, result.getLineNumber(), "Line number should match");
     }
 
@@ -60,7 +59,6 @@ class ValidationUtilsTest {
         
         assertNotNull(result, "Invalid email should return error");
         assertEquals("Email inválido", result.getErrorMessage(), "Error message should match expected");
-        assertEquals("VALIDATION_ERROR", result.getErrorType(), "Error type should be VALIDATION_ERROR");
     }
 
     @Test

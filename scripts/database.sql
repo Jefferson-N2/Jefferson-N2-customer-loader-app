@@ -81,16 +81,11 @@ CREATE TABLE payroll_payments (
 CREATE TABLE bulk_load_errors (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     process_id VARCHAR(36) NOT NULL,
-    client_code VARCHAR(50),
-    id_type CHAR(1),
-    id_number VARCHAR(50),
     line_number INT NOT NULL,
+    field_name VARCHAR(50) NOT NULL,
     error_message VARCHAR(500) NOT NULL,
-    error_type VARCHAR(50) NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    processing_date DATETIME NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (process_id) REFERENCES bulk_load_processes(process_id) ON DELETE CASCADE,
     INDEX idx_process_id (process_id),
-    INDEX idx_client_code (client_code)
+    INDEX idx_line_number (line_number)
 );

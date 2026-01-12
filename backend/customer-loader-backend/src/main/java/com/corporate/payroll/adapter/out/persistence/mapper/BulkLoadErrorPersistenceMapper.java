@@ -9,22 +9,18 @@ import org.mapstruct.Mapping;
 public interface BulkLoadErrorPersistenceMapper {
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "clientCode", target = "clientCode")
-    @Mapping(source = "idType", target = "idType")
-    @Mapping(source = "idNumber", target = "idNumber")
+    @Mapping(source = "processId", target = "processId")
     @Mapping(source = "lineNumber", target = "lineNumber")
+    @Mapping(source = "fieldName", target = "fieldName")
     @Mapping(source = "errorMessage", target = "errorMessage")
-    @Mapping(source = "errorType", target = "errorType")
     @Mapping(source = "createdAt", target = "createdAt")
     BulkLoadErrorEntity toDomainEntity(BulkLoadError bulkLoadError);
     
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "clientCode", target = "clientCode")
-    @Mapping(source = "idType", target = "idType")
-    @Mapping(source = "idNumber", target = "idNumber")
+    @Mapping(source = "processId", target = "processId")
     @Mapping(source = "lineNumber", target = "lineNumber")
+    @Mapping(source = "fieldName", target = "fieldName")
     @Mapping(source = "errorMessage", target = "errorMessage")
-    @Mapping(source = "errorType", target = "errorType")
     @Mapping(source = "createdAt", target = "createdAt")
     BulkLoadError toModel(BulkLoadErrorEntity bulkLoadErrorEntity);
 }

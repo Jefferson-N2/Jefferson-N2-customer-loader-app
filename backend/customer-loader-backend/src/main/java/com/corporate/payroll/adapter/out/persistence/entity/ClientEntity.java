@@ -53,9 +53,4 @@ public class ClientEntity {
 
     @Column(name = "process_id", length = 36)
     private String processId;
-
-    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<AccountEntity> accounts;
-
 }

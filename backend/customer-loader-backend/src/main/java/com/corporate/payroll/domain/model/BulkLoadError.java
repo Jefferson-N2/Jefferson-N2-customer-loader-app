@@ -14,13 +14,8 @@ public class BulkLoadError {
     
     private Long id;
     private String processId;
-    private String clientCode;
-    private String idType;
-    private String idNumber;
     private Integer lineNumber;
     private String errorMessage;
-    private String errorType;
-    private String fileName;
-    private LocalDateTime processingDate;
+    private String fieldName;
     private LocalDateTime createdAt;
 }

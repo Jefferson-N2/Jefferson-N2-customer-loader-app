@@ -78,10 +78,33 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
 
     @Override
     public Long getLastAccountNumber() {
+        try {
             String lastAccountNumber = entityManager.createQuery(
                             "SELECT a.accountNumber FROM AccountEntity a ORDER BY CAST(a.accountNumber AS long) DESC", String.class)
                     .setMaxResults(1)
                     .getSingleResult();
             return Long.parseLong(lastAccountNumber);
-            }
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    @Override
+    public List<Account> findAll(int page, int size) {
+        List<AccountEntity> entities = entityManager.createQuery(
+                        "SELECT a FROM AccountEntity a ORDER BY a.id DESC", AccountEntity.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+        return entities.stream()
+                .map(accountMapper::toModel)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countAll() {
+        return entityManager.createQuery(
+                        "SELECT COUNT(a) FROM AccountEntity a", Long.class)
+                .getSingleResult();
+    }
 }

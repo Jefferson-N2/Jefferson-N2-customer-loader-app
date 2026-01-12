@@ -30,4 +30,11 @@ public interface BulkLoadErrorRepositoryPort {
      * @return lista de errores del proceso
      */
     List<BulkLoadError> findByProcessId(String processId, int page, int size);
+    
+    /**
+     * Cuenta el total de errores de un proceso
+     * @param processId ID del proceso de carga
+     * @return número total de errores
+     */
+    long countByProcessId(String processId);
 }

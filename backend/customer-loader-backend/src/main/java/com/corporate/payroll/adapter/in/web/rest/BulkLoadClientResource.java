@@ -1,5 +1,7 @@
 package com.corporate.payroll.adapter.in.web.rest;
 
+import com.corporate.payroll.adapter.in.web.metrics.PerformanceMetrics;
+import com.corporate.payroll.adapter.in.web.security.SecurityValidation;
 import com.corporate.payroll.application.port.in.web.rest.api.BulkLoadApiInputPort;
 import com.corporate.payroll.adapter.in.web.security.SecurityValidationInterceptor;
 import com.corporate.payroll.application.port.in.BulkLoadClientUseCase;
@@ -14,6 +16,8 @@ import java.io.InputStream;
 
 
 @ApplicationScoped
+@PerformanceMetrics
+@SecurityValidation
 @Path("/bulk-load/clients")
 public class BulkLoadClientResource implements BulkLoadApiInputPort {
 

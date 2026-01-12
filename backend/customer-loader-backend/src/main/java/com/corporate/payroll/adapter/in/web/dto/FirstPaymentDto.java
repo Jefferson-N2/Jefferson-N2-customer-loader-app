@@ -5,15 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientAccountDto {
-    private String accountNumber;
-    private BigDecimal payrollValue;
+public class FirstPaymentDto {
+    
+    private BigDecimal amount;
+    private LocalDate paymentDate;
     private String status;
-    private boolean lastPayrollPaid;
 }

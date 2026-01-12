@@ -32,7 +32,7 @@ public class PayrollPaymentRepositoryAdapter implements PayrollPaymentRepository
     @Override
     public List<PayrollPayment> findByAccountNumber(String accountNumber) {
         List<Object[]> results = entityManager.createQuery(
-                        "SELECT p.id, p.paymentDate, p.amount, p.status, a.id FROM PayrollPaymentEntity p JOIN p.account a WHERE a.accountNumber = :accountNumber ORDER BY p.paymentDate DESC",
+                        "SELECT p.id, p.paymentDate, p.amount, p.status, p.accountId FROM PayrollPaymentEntity p JOIN AccountEntity a ON p.accountId = a.id WHERE a.accountNumber = :accountNumber ORDER BY p.paymentDate DESC",
                         Object[].class)
                 .setParameter("accountNumber", accountNumber)
                 .getResultList();
@@ -51,7 +51,7 @@ public class PayrollPaymentRepositoryAdapter implements PayrollPaymentRepository
     @Override
     public List<PayrollPayment> findByAccountNumber(String accountNumber, int page, int size) {
         List<Object[]> results = entityManager.createQuery(
-                        "SELECT p.id, p.paymentDate, p.amount, p.status, a.id FROM PayrollPaymentEntity p JOIN p.account a WHERE a.accountNumber = :accountNumber ORDER BY p.paymentDate DESC",
+                        "SELECT p.id, p.paymentDate, p.amount, p.status, p.accountId FROM PayrollPaymentEntity p JOIN AccountEntity a ON p.accountId = a.id WHERE a.accountNumber = :accountNumber ORDER BY p.paymentDate DESC",
                         Object[].class)
                 .setParameter("accountNumber", accountNumber)
                 .setFirstResult(page * size)
@@ -67,5 +67,45 @@ public class PayrollPaymentRepositoryAdapter implements PayrollPaymentRepository
                         .accountId((Long) row[4])
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PayrollPayment> findAll(int page, int size) {
+        List<PayrollPaymentEntity> entities = entityManager.createQuery(
+                        "SELECT p FROM PayrollPaymentEntity p ORDER BY p.paymentDate DESC", PayrollPaymentEntity.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+        return entities.stream()
+                .map(paymentMapper::toModel)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countAll() {
+        return entityManager.createQuery(
+                        "SELECT COUNT(p) FROM PayrollPaymentEntity p", Long.class)
+                .getSingleResult();
+    }
+
+    @Override
+    public List<PayrollPayment> findByAccountId(Long accountId, int page, int size) {
+        List<PayrollPaymentEntity> entities = entityManager.createQuery(
+                        "SELECT p FROM PayrollPaymentEntity p WHERE p.accountId = :accountId ORDER BY p.paymentDate DESC", PayrollPaymentEntity.class)
+                .setParameter("accountId", accountId)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+        return entities.stream()
+                .map(paymentMapper::toModel)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countByAccountId(Long accountId) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(p) FROM PayrollPaymentEntity p WHERE p.accountId = :accountId", Long.class)
+                .setParameter("accountId", accountId)
+                .getSingleResult();
     }
 }

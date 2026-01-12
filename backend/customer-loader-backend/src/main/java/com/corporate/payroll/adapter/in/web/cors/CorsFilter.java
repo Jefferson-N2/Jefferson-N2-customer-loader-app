@@ -21,7 +21,7 @@ public class CorsFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String origins = System.getenv("CORS_ALLOWED_ORIGINS");
-        allowedOrigins = Objects.isNull(origins) ? Arrays.asList(origins.split(",")) : 
+        allowedOrigins = !Objects.isNull(origins) ? Arrays.asList(origins.split(",")) : 
                         Arrays.asList("http://localhost:4200");
         
         allowedMethods = System.getenv("CORS_ALLOWED_METHODS");
@@ -35,7 +35,7 @@ public class CorsFilter implements Filter {
         }
         
         String credentials = System.getenv("CORS_ALLOW_CREDENTIALS");
-        allowCredentials = credentials != null ? Boolean.parseBoolean(credentials) : true;
+        allowCredentials = credentials == null || Boolean.parseBoolean(credentials);
         
         maxAge = System.getenv("CORS_MAX_AGE");
         if (maxAge == null) {

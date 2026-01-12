@@ -137,7 +137,7 @@ class ClientRepositoryAdapterTest {
         when(query.getResultList()).thenReturn(entityList);
         when(clientMapper.toModel(testClientEntity)).thenReturn(testClient);
 
-        List<Client> result = clientRepositoryAdapter.findAllPaginated(page, size);
+        List<Client> result = clientRepositoryAdapter.findAll(page, size);
 
         
         assertNotNull(result);

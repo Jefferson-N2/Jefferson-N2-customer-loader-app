@@ -1,40 +1,72 @@
 package com.corporate.payroll.adapter.in.web.rest;
 
+import com.corporate.payroll.adapter.in.web.service.PaginationService;
 import com.corporate.payroll.application.port.out.ClientRepositoryPort;
+import com.corporate.payroll.application.port.out.AccountRepositoryPort;
+import com.corporate.payroll.application.port.out.PayrollPaymentRepositoryPort;
+import com.corporate.payroll.adapter.in.web.dto.PagedResponseDto;
+import com.corporate.payroll.adapter.in.web.dto.ClientDetailDto;
+import com.corporate.payroll.adapter.in.web.mapper.ClientDetailMapper;
 import com.corporate.payroll.domain.model.Client;
+import com.corporate.payroll.domain.model.Account;
+import com.corporate.payroll.domain.model.PayrollPayment;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-/**
- * Recurso REST para consultas de clientes
- * 
- * Endpoints:
- * - GET /clients/{processId}: Lista de clientes por proceso
- * - GET /clients/code/{clientCode}: Detalle de cliente por código
- */
+@Tag(name = "Clientes", description = "Operaciones relacionadas con clientes")
 @ApplicationScoped
 @Path("/clients")
 public class ClientResource {
 
     @Inject
     private ClientRepositoryPort clientRepository;
+    
+    @Inject
+    private AccountRepositoryPort accountRepository;
+    
+    @Inject
+    private PayrollPaymentRepositoryPort paymentRepository;
+    
+    @Inject
+    private ClientDetailMapper clientDetailMapper;
+    
+    @Inject
+    private PaginationService paginationService;
 
-    /**
-     * GET /clients/{processId}
-     * Obtiene los clientes de un proceso específico con paginación
-     * 
-     * @param processId ID del proceso de carga
-     * @param page número de página (0-indexed)
-     * @param size tamaño de página
-     * @return Respuesta paginada de clientes del proceso
-     */
+    @Operation(
+        summary = "Listar todos los clientes",
+        description = "Obtiene todos los clientes registrados con paginación"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Lista paginada de clientes",
+        content = @Content(mediaType = "application/json")
+    )
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllClients(
+            @Parameter(description = "Número de página (0-indexed)") @QueryParam("page") @DefaultValue("0") int page,
+            @Parameter(description = "Tamaño de página") @QueryParam("size") @DefaultValue("20") int size) {
+        
+        List<Client> clients = clientRepository.findAll(page, size);
+        long totalElements = clientRepository.countAll();
+        
+        PagedResponseDto<Client> response = paginationService.createPagedResponse(
+                clients, totalElements, page, size);
+        
+        return Response.ok(response).build();
+    }
+
     @GET
     @Path("/{processId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -43,46 +75,43 @@ public class ClientResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
         
-        // Obtener clientes paginados
         List<Client> clients = clientRepository.findByProcessId(processId, page, size);
-        
-        // Contar total de clientes para el proceso
         long totalElements = clientRepository.countByProcessId(processId);
-        int totalPages = (int) Math.ceil((double) totalElements / size);
         
-        // Construir respuesta paginada
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", clients);
-        response.put("totalElements", totalElements);
-        response.put("totalPages", totalPages);
-        response.put("size", size);
-        response.put("number", page);
-        response.put("empty", clients.isEmpty());
+        PagedResponseDto<Client> response = paginationService.createPagedResponse(
+                clients, totalElements, page, size);
         
         return Response.ok(response).build();
     }
 
-    /**
-     * GET /clients/code/{clientCode}
-     * Obtiene el detalle de un cliente por su código
-     * 
-     * @param clientCode código del cliente
-     * @return Detalle del cliente
-     */
     @GET
     @Path("/code/{clientCode}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getClientByCode(@PathParam("clientCode") String clientCode) {
         
-        Optional<Client> client = clientRepository.findByClientCode(clientCode);
+        Optional<Client> clientOpt = clientRepository.findByClientCode(clientCode);
         
-        if (client.isEmpty()) {
+        if (clientOpt.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"message\":\"Cliente no encontrado\"}")
                     .build();
         }
         
-        return Response.ok(client.get()).build();
+        Client client = clientOpt.get();
+        Optional<Account> accountOpt = accountRepository.findByClientId(client.getId());
+        
+        if (accountOpt.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Cuenta no encontrada para el cliente\"}")
+                    .build();
+        }
+        
+        Account account = accountOpt.get();
+        PayrollPayment firstPayment = paymentRepository.findByAccountId(account.getId(), 0, 1)
+                .stream().findFirst().orElse(null);
+        
+        ClientDetailDto clientDetail = clientDetailMapper.toDto(client, account, firstPayment);
+        
+        return Response.ok(clientDetail).build();
     }
 }
-

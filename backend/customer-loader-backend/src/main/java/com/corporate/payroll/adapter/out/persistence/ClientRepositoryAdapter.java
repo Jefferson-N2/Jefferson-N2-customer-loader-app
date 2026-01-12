@@ -60,25 +60,18 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
     public Optional<Client> findByClientCode(String clientCode) {
         try {
             ClientEntity entity = entityManager.createQuery(
-                "SELECT c FROM ClientEntity c LEFT JOIN FETCH c.accounts WHERE c.clientCode = :code", ClientEntity.class)
+                "SELECT c FROM ClientEntity c WHERE c.clientCode = :code", ClientEntity.class)
                 .setParameter("code", clientCode)
                 .getSingleResult();
             
-            Client client = clientMapper.toModel(entity);
-            if (entity.getAccounts() != null && !entity.getAccounts().isEmpty()) {
-                client.setAccounts(entity.getAccounts().stream()
-                    .map(accountMapper::toModel)
-                    .collect(Collectors.toList()));
-            }
-            
-            return Optional.of(client);
+            return Optional.of(clientMapper.toModel(entity));
         } catch (NoResultException e) {
             return Optional.empty();
         } 
     }
 
     @Override
-    public List<Client> findAllPaginated(int page, int size) {
+    public List<Client> findAll(int page, int size) {
         List<ClientEntity> entities = entityManager.createQuery(
                 "SELECT c FROM ClientEntity c ORDER BY c.id DESC",
                 ClientEntity.class)
@@ -90,6 +83,14 @@ public class ClientRepositoryAdapter implements ClientRepositoryPort {
                 .map(clientMapper::toModel)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public long countAll() {
+        return entityManager.createQuery(
+                "SELECT COUNT(c) FROM ClientEntity c", Long.class)
+                .getSingleResult();
+    }
+
 
     @Override
     public List<Client> findByProcessId(String processId, int page, int size) {

@@ -42,20 +42,14 @@ class BulkLoadErrorRepositoryAdapterTest {
         MockitoAnnotations.openMocks(this);
         errorDomain = BulkLoadError.builder()
                 .processId("PROC123")
-                .clientCode("CLI001")
-                .fileName("test.csv")
                 .lineNumber(1)
                 .errorMessage("Error de prueba")
-                .processingDate(LocalDateTime.now())
                 .build();
 
         errorEntity = new BulkLoadErrorEntity();
         errorEntity.setProcessId("PROC123");
-        errorEntity.setClientCode("CLI001");
-        errorEntity.setFileName("test.csv");
         errorEntity.setLineNumber(1);
         errorEntity.setErrorMessage("Error de prueba");
-        errorEntity.setProcessingDate(LocalDateTime.now());
     }
 
     @Test
@@ -79,7 +73,6 @@ class BulkLoadErrorRepositoryAdapterTest {
         List<BulkLoadError> result = repositoryAdapter.findByProcessId("PROC123");
 
         assertEquals(1, result.size());
-        assertEquals("CLI001", result.get(0).getClientCode());
     }
 
     @Test
@@ -94,6 +87,5 @@ class BulkLoadErrorRepositoryAdapterTest {
         List<BulkLoadError> result = repositoryAdapter.findByProcessId("PROC123", 0, 10);
 
         assertEquals(1, result.size());
-        assertEquals("test.csv", result.get(0).getFileName());
     }
 }

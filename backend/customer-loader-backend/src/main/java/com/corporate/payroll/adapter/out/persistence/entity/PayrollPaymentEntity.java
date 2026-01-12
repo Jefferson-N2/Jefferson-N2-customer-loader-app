@@ -21,10 +21,8 @@ public class PayrollPaymentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    @ToString.Exclude
-    private AccountEntity account;
+    @Column(name = "account_id", nullable = false)
+    private Long accountId;
 
     @Column(name = "payment_date")
     private LocalDate paymentDate;

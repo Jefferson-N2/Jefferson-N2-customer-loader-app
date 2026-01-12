@@ -25,7 +25,12 @@ public interface ClientRepositoryPort {
     /**
      * Obtiene todos los clientes (paginado)
      */
-    List<Client> findAllPaginated(int page, int size);
+    List<Client> findAll(int page, int size);
+    
+    /**
+     * Cuenta el total de clientes
+     */
+    long countAll();
     
     /**
      * Obtiene clientes por processId (paginado)

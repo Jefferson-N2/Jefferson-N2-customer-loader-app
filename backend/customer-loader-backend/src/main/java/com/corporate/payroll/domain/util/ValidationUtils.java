@@ -15,6 +15,17 @@ import java.util.regex.Pattern;
 public final class ValidationUtils {
 
     /**
+     * Crea un error para un campo específico
+     * @return BulkLoadError con el mensaje de error
+     */
+    public static BulkLoadError createFieldError(String fieldName, String errorMessage, Integer lineNumber) {
+        return BulkLoadError.builder()
+            .lineNumber(lineNumber)
+            .errorMessage(errorMessage)
+            .build();
+    }
+
+    /**
      * Valida que un valor no esté vacío
      * @return BulkLoadError si falla la validación, null si es válido
      */
@@ -23,7 +34,6 @@ public final class ValidationUtils {
             return BulkLoadError.builder()
                 .lineNumber(lineNumber)
                 .errorMessage(fieldName + " no puede estar vacío")
-                .errorType("VALIDATION_ERROR")
                 .build();
         }
         return null;
@@ -38,7 +48,6 @@ public final class ValidationUtils {
             return BulkLoadError.builder()
                 .lineNumber(lineNumber)
                 .errorMessage(errorMessage)
-                .errorType("VALIDATION_ERROR")
                 .build();
         }
         return null;
@@ -56,7 +65,6 @@ public final class ValidationUtils {
             return BulkLoadError.builder()
                 .lineNumber(lineNumber)
                 .errorMessage(fieldName + " debe contener únicamente valores numéricos")
-                .errorType("VALIDATION_ERROR")
                 .build();
         }
     }
@@ -73,7 +81,6 @@ public final class ValidationUtils {
             return BulkLoadError.builder()
                 .lineNumber(lineNumber)
                 .errorMessage(errorMessage)
-                .errorType("VALIDATION_ERROR")
                 .build();
         }
     }

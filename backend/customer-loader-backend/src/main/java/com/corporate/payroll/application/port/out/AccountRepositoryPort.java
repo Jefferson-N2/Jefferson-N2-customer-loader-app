@@ -1,6 +1,7 @@
 package com.corporate.payroll.application.port.out;
 
 import com.corporate.payroll.domain.model.Account;
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepositoryPort {
@@ -30,4 +31,14 @@ public interface AccountRepositoryPort {
      * Obtiene el último número de cuenta usado para generar secuencia
      */
     Long getLastAccountNumber();
+    
+    /**
+     * Obtiene todas las cuentas con paginación
+     */
+    List<Account> findAll(int page, int size);
+    
+    /**
+     * Cuenta el total de cuentas
+     */
+    long countAll();
 }

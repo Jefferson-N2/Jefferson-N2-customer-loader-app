@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Customer Loader API
+  description: API para carga masiva de clientes y gestión de nómina
+  version: 1.0.0
+  contact:
+    name: Equipo de Desarrollo
+
+servers:
+  - url: http://localhost:8080/customer-loader-backend/api
+    description: Desarrollo
+  - url: /customer-loader-backend/api
+    description: Producción
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health Check
+      summary: Verificar estado del servicio
+      responses:
+        '200':
+          description: Servicio funcionando correctamente
+        '503':
+          description: Servicio no disponible
+
+  /bulk-load/clients:
+    post:
+      tags:
+        - Carga Masiva
+      summary: Cargar archivo de clientes
+      parameters:
+        - name: fileName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Nombre del archivo
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: "C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845"
+      responses:
+        '200':
+          description: Archivo procesado exitosamente
+        '400':
+          description: Error en el archivo o parámetros
+
+  /processes/{processId}/details:
+    get:
+      tags:
+        - Procesos
+      summary: Obtener detalles de un proceso
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalles del proceso
+        '404':
+          description: Proceso no encontrado
+
+  /processes/{processId}/errors:
+    get:
+      tags:
+        - Procesos
+      summary: Obtener errores de un proceso
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Lista de errores del proceso
+
+  /processes/{processId}/clients:
+    get:
+      tags:
+        - Procesos
+      summary: Obtener clientes de un proceso
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de clientes del proceso
+
+  /clients:
+    get:
+      tags:
+        - Clientes
+      summary: Listar todos los clientes
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de clientes
+
+  /clients/code/{clientCode}:
+    get:
+      tags:
+        - Clientes
+      summary: Obtener cliente por código
+      parameters:
+        - name: clientCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalle del cliente
+        '404':
+          description: Cliente no encontrado
+
+  /errors/{processId}:
+    get:
+      tags:
+        - Errores
+      summary: Obtener errores por proceso
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Lista de errores

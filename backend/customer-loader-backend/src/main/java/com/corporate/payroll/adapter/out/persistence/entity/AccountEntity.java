@@ -24,19 +24,12 @@ public class AccountEntity {
     @Column(name = "account_number", unique = true, nullable = false)
     private String accountNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id", nullable = false)
-    @ToString.Exclude
-    private ClientEntity client;
+    @Column(name = "client_id", nullable = false)
+    private Long clientId;
 
     @Column(name = "payroll_value", precision = 19, scale = 2)
     private BigDecimal payrollValue;
     
     @Column(name = "status", length = 50)
     private String status;
-
-    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<PayrollPaymentEntity> payments;
-
 }

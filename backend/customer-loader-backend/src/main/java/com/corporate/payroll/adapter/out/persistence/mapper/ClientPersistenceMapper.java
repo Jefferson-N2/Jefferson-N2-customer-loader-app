@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "cdi")
 public interface ClientPersistenceMapper {
     
-    @Mapping(target = "accounts", ignore = true)
     ClientEntity toDomainEntity(Client client);
     
     @Mapping(target = "accounts", ignore = true)

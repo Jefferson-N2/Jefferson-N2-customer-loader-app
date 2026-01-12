@@ -1,42 +1,40 @@
 package com.corporate.payroll.adapter.in.web.rest;
 
+import com.corporate.payroll.adapter.in.web.service.PaginationService;
 import com.corporate.payroll.application.port.out.BulkLoadErrorRepositoryPort;
+import com.corporate.payroll.adapter.in.web.dto.PagedResponseDto;
+import com.corporate.payroll.domain.model.BulkLoadError;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
-/**
- * Recurso REST para consultas de errores de carga masiva
- * 
- * Endpoints:
- * - GET /errors/{processId}: Errores de un proceso específico
- */
 @ApplicationScoped
 @Path("/errors")
 public class ErrorResource {
 
     @Inject
     private BulkLoadErrorRepositoryPort errorRepository;
+    
+    @Inject
+    private PaginationService paginationService;
 
-    /**
-     * GET /errors/{processId}
-     * Obtiene los errores de un proceso específico
-     * 
-     * @param processId ID del proceso de carga
-     * @param page número de página
-     * @param size tamaño de página
-     * @return Lista de errores del proceso
-     */
     @GET
     @Path("/{processId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getProcessErrors(
             @PathParam("processId") String processId,
             @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("50") int size) {
+            @QueryParam("size") @DefaultValue("5") int size) {
         
-        return Response.ok(errorRepository.findByProcessId(processId, page, size)).build();
+        List<BulkLoadError> errors = errorRepository.findByProcessId(processId, page, size);
+        long totalErrors = errorRepository.countByProcessId(processId);
+        
+        PagedResponseDto<BulkLoadError> response = paginationService.createPagedResponse(
+                errors, totalErrors, page, size);
+        
+        return Response.ok(response).build();
     }
 }
