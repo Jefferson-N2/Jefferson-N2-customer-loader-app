@@ -9,7 +9,9 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -54,5 +56,25 @@ public class BulkLoadProcessRepositoryAdapter implements BulkLoadProcessReposito
         entity = entityManager.merge(entity);
         entityManager.flush();
         return mapper.toModel(entity);
+    }
+    
+    @Override
+    public List<BulkLoadProcess> findAll(int page, int size) {
+        List<BulkLoadProcessEntity> entities = entityManager
+            .createQuery("SELECT b FROM BulkLoadProcessEntity b ORDER BY b.processingDate DESC", BulkLoadProcessEntity.class)
+            .setFirstResult(page * size)
+            .setMaxResults(size)
+            .getResultList();
+        
+        return entities.stream()
+            .map(mapper::toModel)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    public long countAll() {
+        return entityManager
+            .createQuery("SELECT COUNT(b) FROM BulkLoadProcessEntity b", Long.class)
+            .getSingleResult();
     }
 }

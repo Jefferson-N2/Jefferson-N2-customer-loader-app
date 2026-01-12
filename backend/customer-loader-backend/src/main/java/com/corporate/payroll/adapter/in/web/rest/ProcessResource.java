@@ -31,6 +31,30 @@ public class ProcessResource {
     private ClientRepositoryPort clientRepository;
 
     /**
+     * GET /processes
+     * Obtiene todos los archivos/procesos cargados paginados
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllProcesses(
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("20") int size) {
+        
+        List<BulkLoadProcess> processes = processRepository.findAll(page, size);
+        long totalElements = processRepository.countAll();
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", processes);
+        response.put("totalElements", totalElements);
+        response.put("totalPages", (int) Math.ceil((double) totalElements / size));
+        response.put("size", size);
+        response.put("number", page);
+        response.put("empty", processes.isEmpty());
+        
+        return Response.ok(response).build();
+    }
+
+    /**
      * GET /processes/{processId}/details
      * Obtiene detalles completos del proceso incluyendo errores y clientes
      */
