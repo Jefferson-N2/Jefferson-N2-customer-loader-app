@@ -1,0 +1,141 @@
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 350px;
+  min-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+
+  .notification-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .notification-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .notification-close {
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+}
+
+/* Variantes de notificación */
+.notification-error {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #c62828;
+
+  .notification-icon {
+    color: #c62828;
+  }
+
+  .notification-close {
+    color: #c62828;
+
+    &:hover {
+      background-color: rgba(198, 40, 40, 0.08);
+    }
+  }
+}
+
+.notification-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #2e7d32;
+
+  .notification-icon {
+    color: #2e7d32;
+  }
+
+  .notification-close {
+    color: #2e7d32;
+
+    &:hover {
+      background-color: rgba(46, 125, 50, 0.08);
+    }
+  }
+}
+
+.notification-warning {
+  background-color: #fff3e0;
+  color: #e65100;
+  border-left: 4px solid #e65100;
+
+  .notification-icon {
+    color: #e65100;
+  }
+
+  .notification-close {
+    color: #e65100;
+
+    &:hover {
+      background-color: rgba(230, 81, 0, 0.08);
+    }
+  }
+}
+
+.notification-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-left: 4px solid #1565c0;
+
+  .notification-icon {
+    color: #1565c0;
+  }
+
+  .notification-close {
+    color: #1565c0;
+
+    &:hover {
+      background-color: rgba(21, 101, 192, 0.08);
+    }
+  }
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .notification {
+    max-width: 90vw;
+    min-width: auto;
+    right: 10px;
+    left: 10px;
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .notification-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .notification-message {
+    font-size: 13px;
+  }
+}

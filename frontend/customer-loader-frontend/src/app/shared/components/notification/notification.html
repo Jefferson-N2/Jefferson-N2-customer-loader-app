@@ -1,0 +1,24 @@
+<div
+  class="notification"
+  [ngClass]="'notification-' + type"
+  *ngIf="isVisible$ | async"
+  [attr.role]="getRole()"
+  [attr.aria-label]="getAriaLabel() + ': ' + message"
+  aria-live="polite"
+  [@slideIn]
+>
+  <mat-icon class="notification-icon" aria-hidden="true">
+    {{ getIcon() }}
+  </mat-icon>
+
+  <span class="notification-message">{{ message }}</span>
+
+  <button
+    mat-icon-button
+    (click)="close()"
+    class="notification-close"
+    aria-label="Cerrar notificación"
+  >
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+</div>
