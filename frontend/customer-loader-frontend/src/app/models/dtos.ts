@@ -3,7 +3,7 @@
  */
 export interface BulkLoadResponse {
   processId: string;
-  status: string; // "COMPLETED", "PROCESSING", "FAILED"
+  status: string; 
   successCount: number;
   errorCount: number;
   message: string;
@@ -18,7 +18,7 @@ export interface BulkLoadStatistics {
   errorCount: number;
   totalCount: number;
   message: string;
-  processedAt: string; // ISO 8601
+  processedAt: string; 
 }
 
 /**
@@ -31,7 +31,7 @@ export interface ProcessDetails {
   totalRecords: number;
   successfulCount: number;
   errorCount: number;
-  processingDate: string; // ISO 8601
+  processingDate: string; 
   clients?: ClientDetail[];
   errors?: BulkLoadError[];
 }
@@ -40,10 +40,10 @@ export interface ProcessDetails {
  * DTO: Error de carga
  */
 export interface BulkLoadError {
-  code: string; // "VALIDATION_ERROR_EMAIL", etc
+  code: string; 
   message: string;
-  field?: string; // Campo que falló
-  lineNumber: number; // Línea del archivo
+  field?: string;
+  lineNumber: number; 
   idType?: string;
   idNumber?: string;
 }
@@ -53,12 +53,12 @@ export interface BulkLoadError {
  */
 export interface ClientDetail {
   clientCode: string;
-  idType: string; // "C" o "P"
+  idType: string; 
   idNumber: string;
   firstNames: string;
   lastNames: string;
-  birthDate: string; // "YYYY-MM-DD"
-  joinDate: string; // "YYYY-MM-DD"
+  birthDate: string; 
+  joinDate: string; 
   email: string;
   phoneNumber: string;
   account?: Account;
@@ -70,7 +70,7 @@ export interface ClientDetail {
 export interface Account {
   accountNumber: string;
   payrollValue: number;
-  status: string; // "ACTIVE"
+  status: string;
 }
 
 /**
@@ -78,7 +78,7 @@ export interface Account {
  */
 export interface HealthResponse {
   status: 'UP' | 'DOWN';
-  timestamp: string; // ISO 8601
+  timestamp: string; 
   service: string;
   version: string;
   checks?: {
