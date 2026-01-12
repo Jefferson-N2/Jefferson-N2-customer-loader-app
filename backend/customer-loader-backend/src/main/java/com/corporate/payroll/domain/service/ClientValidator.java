@@ -19,8 +19,9 @@ public class ClientValidator {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
     private static final Pattern ID_TYPE_PATTERN = Pattern.compile("^[CP]$");
-    private static final Pattern ALPHANUMERIC_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Pattern ALPHANUMERIC_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$", Pattern.CASE_INSENSITIVE);
+    private static final DateTimeFormatter DATE_FORMATTER = 
+        DateTimeFormatter.ofPattern("yyyy-MM-dd", java.util.Locale.ROOT);
 
     /**
      * Valida un cliente completo y devuelve lista de TODOS los errores encontrados

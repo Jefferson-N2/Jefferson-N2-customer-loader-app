@@ -49,21 +49,22 @@ public class ProcessResource {
                     .build();
         }
 
+        BulkLoadProcess processData = process.get();
         List<Client> clients = clientRepository.findByProcessId(processId, 0, 100);
         List<BulkLoadError> errors = null;
         
-        if (includeErrors && process.get().getErrorCount() > 0) {
+        if (includeErrors && processData.getErrorCount() != null && processData.getErrorCount() > 0) {
             errors = errorRepository.findByProcessId(processId);
         }
-
+        
         ProcessDetailsResponseDto response = ProcessDetailsResponseDto.builder()
-                .processId(process.get().getProcessId())
-                .fileName(process.get().getFileName())
-                .status(process.get().getStatus())
-                .totalRecords(process.get().getTotalRecords())
-                .successfulCount(process.get().getSuccessfulCount())
-                .errorCount(process.get().getErrorCount())
-                .processingDate(process.get().getProcessingDate())
+                .processId(processData.getProcessId())
+                .fileName(processData.getFileName())
+                .status(processData.getStatus())
+                .totalRecords(processData.getTotalRecords())
+                .successfulCount(processData.getSuccessfulCount())
+                .errorCount(processData.getErrorCount())
+                .processingDate(processData.getProcessingDate())
                 .clients(clients)
                 .errors(errors)
                 .build();
