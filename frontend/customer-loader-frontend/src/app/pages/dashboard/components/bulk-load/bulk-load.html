@@ -1,67 +1,106 @@
-<mat-card class="upload-card">
+<mat-card class="upload-card" role="region" aria-label="Sección de carga de archivos">
   <mat-card-header>
-    <mat-card-title>Carga Masiva de Clientes</mat-card-title>
+    <mat-card-title id="upload-title">Carga Masiva de Clientes</mat-card-title>
     <mat-card-subtitle>Selecciona un archivo TXT para procesar</mat-card-subtitle>
   </mat-card-header>
 
+  <!-- Componente de Notificación Reutilizable -->
+  <ng-container *ngIf="notificationMessage$ | async as message">
+    <ng-container *ngIf="notificationType$ | async as type">
+      <app-notification
+        [message]="message"
+        [type]="type"
+        [duration]="5000"
+      ></app-notification>
+    </ng-container>
+  </ng-container>
+
   <mat-card-content>
-    <div class="upload-area" [ngClass]="{'drag-over': isDragOver}">
+    <!-- Área de arrastre y selección -->
+    <div
+      class="upload-area"
+      [ngClass]="{'drag-over': isDragOver}"
+      (click)="fileInput.click()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+      role="button"
+      tabindex="0"
+      aria-describedby="upload-info"
+      aria-label="Área para arrastrar o seleccionar archivo TXT"
+    >
       <input
+        #fileInput
         type="file"
         accept=".txt"
         (change)="onFileSelected($event)"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave()"
-        (drop)="onDrop($event)"
         class="file-input"
+        aria-label="Seleccionar archivo TXT"
       />
-      
+
       <div class="upload-content">
-        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <mat-icon class="upload-icon" aria-hidden="true">cloud_upload</mat-icon>
         <h3>Arrastra tu archivo aquí</h3>
         <p>o haz clic para seleccionar</p>
-        <p class="file-info">Formato: TXT | Máximo: 50 MB</p>
+        <p id="upload-info" class="file-info">Formato: TXT | Máximo: 50 MB</p>
       </div>
     </div>
 
-    <div class="file-selected" *ngIf="selectedFile$ | async as file">
-      <mat-icon>check_circle</mat-icon>
+    <!-- Archivo seleccionado -->
+    <div
+      class="file-selected"
+      *ngIf="selectedFile$ | async as file"
+      role="status"
+      aria-live="polite"
+    >
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
       <span>{{ file.name }} ({{ getFileSize(file.size) }})</span>
-      <button mat-icon-button (click)="clearFile()">
-        <mat-icon>close</mat-icon>
+      <button
+        mat-icon-button
+        (click)="clearFile()"
+        aria-label="Remover archivo seleccionado"
+      >
+        <mat-icon aria-hidden="true">close</mat-icon>
       </button>
     </div>
 
-    <div class="progress-section" *ngIf="isUploading$ | async">
-      <mat-progress-bar 
-        mode="determinate" 
+    <!-- Barra de progreso -->
+    <div
+      class="progress-section"
+      *ngIf="isUploading$ | async"
+      role="progressbar"
+      [attr.aria-valuenow]="uploadProgress$ | async"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="Progreso de carga"
+    >
+      <mat-progress-bar
+        mode="determinate"
         [value]="uploadProgress$ | async"
       ></mat-progress-bar>
       <span class="progress-text">
         Cargando... {{ uploadProgress$ | async }}%
       </span>
     </div>
-
-    <div class="error-message" *ngIf="errorMessage$ | async as error">
-      <mat-icon>error</mat-icon>
-      <span>{{ error }}</span>
-    </div>
   </mat-card-content>
 
+  <!-- Acciones -->
   <mat-card-actions>
     <button
       mat-raised-button
       color="primary"
       (click)="uploadFile()"
       [disabled]="!(selectedFile$ | async) || (isUploading$ | async)"
+      aria-label="Cargar archivo al servidor"
     >
-      <mat-icon>upload</mat-icon>
+      <mat-icon aria-hidden="true">upload</mat-icon>
       Cargar
     </button>
     <button
       mat-stroked-button
       (click)="clearFile()"
       [disabled]="!(selectedFile$ | async)"
+      aria-label="Limpiar archivo seleccionado"
     >
       Limpiar
     </button>

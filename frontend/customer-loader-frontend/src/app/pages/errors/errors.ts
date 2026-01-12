@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,11 +8,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { takeUntil, switchMap, catchError } from 'rxjs/operators';
+import { takeUntil, switchMap, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ErrorService } from '../../services/error-service';
 import { PaginatedResponse, BulkLoadError } from '../../models';
 
+/**
+ * Componente que muestra tabla de errores en carga de datos
+ * 
+ * Características:
+ * - Tabla con 5 columnas (Línea, Campo, Código, Mensaje, ID)
+ * - Paginación (5, 10, 25 registros)
+ * - Estados: cargando, vacío, error
+ * - TrackBy para optimización de renderizado
+ */
 @Component({
   selector: 'app-errors',
   standalone: true,
@@ -27,20 +36,41 @@ import { PaginatedResponse, BulkLoadError } from '../../models';
   ],
   templateUrl: './errors.html',
   styleUrl: './errors.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Errors implements OnInit, OnDestroy {
-  processId: string | null = null;
-  errors$: Observable<PaginatedResponse<BulkLoadError>>;
-  isLoading$ = new BehaviorSubject<boolean>(false);
-  error$ = new BehaviorSubject<string | null>(null);
+export class Errors implements OnDestroy {
+  /** ID del proceso de carga actual */
+  readonly processId$ = new BehaviorSubject<string>('');
+  
+  /** Observable con datos paginados de errores */
+  readonly errors$: Observable<PaginatedResponse<BulkLoadError>>;
+  
+  /** Estado de carga */
+  readonly isLoading$ = new BehaviorSubject<boolean>(false);
+  
+  /** Mensaje de error */
+  readonly error$ = new BehaviorSubject<string | null>(null);
 
-  displayedColumns: string[] = ['lineNumber', 'field', 'code', 'message', 'id'];
+  /** Columnas a mostrar en la tabla */
+  readonly displayedColumns: readonly string[] = [
+    'lineNumber',
+    'field',
+    'code',
+    'message',
+    'id'
+  ];
+
+  /** Tamaño de página actual */
   pageSize = 10;
-  pageSizeOptions = [5, 10, 25];
+  
+  /** Opciones disponibles de tamaño de página */
+  readonly pageSizeOptions = [5, 10, 25];
+  
+  /** Índice de página actual (0-based) */
   currentPage = 0;
 
-  private destroy$ = new Subject<void>();
-  private errorsSubject$ = new BehaviorSubject<PaginatedResponse<BulkLoadError>>({
+  private readonly destroy$ = new Subject<void>();
+  private readonly errorsSubject$ = new BehaviorSubject<PaginatedResponse<BulkLoadError>>({
     content: [],
     totalElements: 0,
     totalPages: 0,
@@ -50,96 +80,119 @@ export class Errors implements OnInit, OnDestroy {
   });
 
   constructor(
-    private errorService: ErrorService,
-    private route: ActivatedRoute,
-    private router: Router
+    private readonly errorService: ErrorService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
   ) {
     this.errors$ = this.errorsSubject$.asObservable();
+    this.initializeComponent();
   }
 
-  ngOnInit(): void {
+  /**
+   * Inicializa el componente y carga los datos
+   * 
+   * @private
+   */
+  private initializeComponent(): void {
     this.route.params
       .pipe(
-        switchMap(params => {
-          this.processId = params['processId'];
-          if (!this.processId) {
+        tap(params => {
+          const processId = params['processId'];
+          if (!processId) {
             this.error$.next('ID de proceso no proporcionado');
-            return of(null);
           }
-          return this.loadErrorsInternal();
+          this.processId$.next(processId);
+        }),
+        switchMap(params => {
+          const processId = params['processId'];
+          if (!processId) {
+            return of(this.createEmptyResponse());
+          }
+          return this.loadErrorsInternal(processId);
         }),
         takeUntil(this.destroy$)
       )
       .subscribe();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  loadErrors(): void {
-    if (this.processId) {
-      this.loadErrorsInternal().pipe(takeUntil(this.destroy$)).subscribe();
-    }
-  }
-
-  private loadErrorsInternal(): Observable<PaginatedResponse<BulkLoadError>> {
-    if (!this.processId) {
-      return of({
-        content: [],
-        totalElements: 0,
-        totalPages: 0,
-        size: 0,
-        number: 0,
-        empty: true
-      });
-    }
-
+  /**
+   * Carga los errores del servidor
+   * 
+   * @private
+   */
+  private loadErrorsInternal(processId: string): Observable<PaginatedResponse<BulkLoadError>> {
     this.isLoading$.next(true);
     this.error$.next(null);
 
-    return this.errorService.getErrors(this.processId, this.currentPage, this.pageSize)
+    return this.errorService
+      .getErrors(processId, this.currentPage, this.pageSize)
       .pipe(
-        takeUntil(this.destroy$),
+        tap(data => {
+          this.errorsSubject$.next(data);
+          this.isLoading$.next(false);
+        }),
         catchError(error => {
           this.isLoading$.next(false);
-          const errorMsg = error?.error?.message || 'Error al cargar los errores';
-          this.error$.next(errorMsg);
-          return of({
-            content: [],
-            totalElements: 0,
-            totalPages: 0,
-            size: this.pageSize,
-            number: 0,
-            empty: true
-          });
+          const errorMsg = error?.message || 'Error al cargar los errores';
+          this.error$.next(`${errorMsg}`);
+          return of(this.createEmptyResponse());
         })
       );
   }
 
+  /**
+   * Maneja cambio de página en el paginador
+   * 
+   * @param event - Evento de cambio de página
+   */
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
 
-    if (this.processId) {
-      this.isLoading$.next(true);
-      this.errorService.getErrors(this.processId, this.currentPage, this.pageSize)
+    const processId = this.processId$.value;
+    if (processId) {
+      this.loadErrorsInternal(processId)
         .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (data: PaginatedResponse<BulkLoadError>) => {
-            this.errorsSubject$.next(data);
-            this.isLoading$.next(false);
-          },
-          error: (error: any) => {
-            this.isLoading$.next(false);
-            this.error$.next(error?.error?.message || 'Error al cargar página');
-          }
-        });
+        .subscribe();
     }
   }
 
+  /**
+   * Función trackBy para optimizar renderizado de filas
+   * 
+   * @param index - Índice de la fila
+   * @param item - Error a renderizar
+   * @returns Identificador único del error
+   */
+  trackByLineNumber(_index: number, item: BulkLoadError): number {
+    return item.lineNumber || _index;
+  }
+
+  /**
+   * Vuelve atrás al dashboard
+   */
   goBack(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  /**
+   * Crea una respuesta paginada vacía
+   * 
+   * @private
+   */
+  private createEmptyResponse(): PaginatedResponse<BulkLoadError> {
+    return {
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: this.pageSize,
+      number: 0,
+      empty: true
+    };
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

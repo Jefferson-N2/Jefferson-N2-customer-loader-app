@@ -1,44 +1,97 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ClientDetail, PaginatedResponse } from '../models';
 
+/**
+ * Servicio para gestionar clientes cargados
+ * 
+ * Maneja la obtención de clientes por proceso y detalles individuales
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ClientService {
-  private apiUrl = `${environment.apiBaseUrl}/clients`;
+  private readonly apiUrl = `${environment.apiBaseUrl}/clients`;
+  private readonly requestTimeout = environment.apiTimeout;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   /**
-   * Obtiene los clientes de un proceso de carga
-   * @param processId ID del proceso
-   * @param page Número de página (0-indexed)
-   * @param size Cantidad de registros por página
-   * @returns Observable con clientes paginados
+   * Obtiene los clientes de un proceso de carga con paginación
+   * 
+   * @param processId - ID único del proceso de carga
+   * @param page - Número de página (0-indexed)
+   * @param size - Cantidad de registros por página
+   * @returns Observable con respuesta paginada de clientes
+   * 
+   * @throws HttpErrorResponse si falla la solicitud
    */
-  getClients(processId: string, page: number = 0, size: number = 10): Observable<PaginatedResponse<ClientDetail>> {
-    let params = new HttpParams();
-    params = params.set('processId', processId);
-    params = params.set('page', page.toString());
-    params = params.set('size', size.toString());
+  public getClients(
+    processId: string,
+    page: number = 0,
+    size: number = 10
+  ): Observable<PaginatedResponse<ClientDetail>> {
+    if (!processId) {
+      return throwError(() => new Error('ID de proceso requerido'));
+    }
+
+    const params = new HttpParams()
+      .set('processId', processId)
+      .set('page', page.toString())
+      .set('size', size.toString());
 
     return this.http.get<PaginatedResponse<ClientDetail>>(
       this.apiUrl,
       { params }
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener clientes'))
     );
   }
 
   /**
    * Obtiene un cliente específico
-   * @param clientId ID del cliente
+   * 
+   * @param clientId - ID único del cliente
    * @returns Observable con detalles del cliente
+   * 
+   * @throws HttpErrorResponse si no encuentra el cliente
    */
-  getClient(clientId: string): Observable<ClientDetail> {
+  public getClient(clientId: string): Observable<ClientDetail> {
+    if (!clientId) {
+      return throwError(() => new Error('ID de cliente requerido'));
+    }
+
     return this.http.get<ClientDetail>(
       `${this.apiUrl}/${clientId}`
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener cliente'))
     );
+  }
+
+  /**
+   * Maneja errores HTTP de forma consistente
+   * 
+   * @private
+   */
+  private handleError(error: HttpErrorResponse | Error, operation: string): Observable<never> {
+    let errorMessage = `Error al ${operation}`;
+
+    if (error instanceof HttpErrorResponse) {
+      if (error.error instanceof ErrorEvent) {
+        errorMessage = error.error.message;
+      } else {
+        errorMessage = error.error?.message || `Error HTTP ${error.status}`;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    console.error(`[ClientService] ${operation}:`, error);
+    return throwError(() => new Error(errorMessage));
   }
 }

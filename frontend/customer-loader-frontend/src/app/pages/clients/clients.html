@@ -1,66 +1,104 @@
-<div class="clients-container">
+<div class="clients-container" role="main">
+  <!-- Encabezado -->
   <div class="clients-header">
-    <h1>Clientes Cargados</h1>
-    <button mat-raised-button color="primary" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
+    <h1 id="clients-title">Clientes Cargados</h1>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="goBack()"
+      aria-label="Volver al dashboard"
+    >
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
       Volver
     </button>
   </div>
 
   <!-- Información del Proceso -->
-  <mat-card class="process-info" *ngIf="processId">
+  <mat-card
+    class="process-info"
+    *ngIf="processId$ | async as processId"
+    role="region"
+    aria-label="Información del proceso de carga"
+  >
     <mat-card-content>
       <span class="label">Proceso ID:</span>
-      <span class="value">{{ processId }}</span>
+      <span class="value" role="status">{{ processId }}</span>
     </mat-card-content>
   </mat-card>
 
   <!-- Tabla de Clientes -->
-  <div class="clients-table-container" *ngIf="clients$ | async as clients">
-    <table mat-table [dataSource]="clients.content" class="clients-table">
+  <div
+    class="clients-table-container"
+    *ngIf="clients$ | async as clients"
+    role="region"
+    aria-labelledby="clients-title"
+  >
+    <table
+      mat-table
+      [dataSource]="clients.content"
+      class="clients-table"
+      role="grid"
+      aria-label="Tabla de clientes cargados"
+    >
       <!-- Columna: Código Cliente -->
       <ng-container matColumnDef="clientCode">
-        <th mat-header-cell *matHeaderCellDef>Código</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Código</th>
         <td mat-cell *matCellDef="let element">{{ element.clientCode }}</td>
       </ng-container>
 
       <!-- Columna: Nombre -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Nombre</th>
-        <td mat-cell *matCellDef="let element">{{ element.firstNames }} {{ element.lastNames }}</td>
+        <th mat-header-cell *matHeaderCellDef scope="col">Nombre</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.firstNames }} {{ element.lastNames }}
+        </td>
       </ng-container>
 
       <!-- Columna: ID -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">ID</th>
         <td mat-cell *matCellDef="let element">{{ element.idNumber }}</td>
       </ng-container>
 
       <!-- Columna: Email -->
       <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef>Email</th>
-        <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+        <th mat-header-cell *matHeaderCellDef scope="col">Email</th>
+        <td mat-cell *matCellDef="let element">
+          <a [href]="'mailto:' + element.email">{{ element.email }}</a>
+        </td>
       </ng-container>
 
       <!-- Columna: Teléfono -->
       <ng-container matColumnDef="phone">
-        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Teléfono</th>
         <td mat-cell *matCellDef="let element">{{ element.phoneNumber }}</td>
       </ng-container>
 
       <!-- Columna: Estado -->
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Estado</th>
         <td mat-cell *matCellDef="let element">
-          <span class="status-badge" [ngClass]="'status-' + element.account?.status?.toLowerCase()">
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + element.account?.status?.toLowerCase()"
+            [attr.aria-label]="'Estado: ' + (element.account?.status || 'N/A')"
+          >
             {{ element.account?.status || 'N/A' }}
           </span>
         </td>
       </ng-container>
 
       <!-- Header y Rows -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <tr
+        mat-header-row
+        *matHeaderRowDef="displayedColumns"
+        role="row"
+      ></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns; trackBy: trackByClientCode"
+        role="row"
+      ></tr>
     </table>
 
     <!-- Paginador -->
@@ -70,36 +108,42 @@
       [pageSizeOptions]="pageSizeOptions"
       (page)="onPageChange($event)"
       showFirstLastButtons
+      aria-label="Paginación de clientes"
     ></mat-paginator>
   </div>
 
   <!-- Cargando -->
-  <div class="loading" *ngIf="isLoading$ | async">
-    <mat-spinner></mat-spinner>
+  <div
+    class="loading"
+    *ngIf="isLoading$ | async"
+    role="status"
+    aria-label="Cargando clientes"
+  >
+    <mat-spinner aria-hidden="true"></mat-spinner>
     <p>Cargando clientes...</p>
   </div>
 
   <!-- Vacío -->
-  <mat-card class="empty-state" *ngIf="(clients$ | async) as clients">
-    <ng-container *ngIf="clients.content.length === 0">
+  <ng-container *ngIf="clients$ | async as clients">
+    <mat-card
+      class="empty-state"
+      *ngIf="clients.content.length === 0"
+      role="status"
+    >
       <mat-card-content>
-        <mat-icon class="empty-icon">people_outline</mat-icon>
+        <mat-icon class="empty-icon" aria-hidden="true">people_outline</mat-icon>
         <h3>No hay clientes</h3>
         <p>No se encontraron clientes para este proceso</p>
       </mat-card-content>
-    </ng-container>
-  </mat-card>
+    </mat-card>
+  </ng-container>
 
   <!-- Error -->
-  <mat-card class="error-state" *ngIf="error$ | async as error">
+  <mat-card class="error-state" *ngIf="error$ | async as error" role="alert">
     <mat-card-content>
-      <mat-icon class="error-icon">error</mat-icon>
+      <mat-icon class="error-icon" aria-hidden="true">error</mat-icon>
       <h3>Error al cargar clientes</h3>
       <p>{{ error }}</p>
-      <button mat-raised-button color="primary" (click)="loadClients()">
-        <mat-icon>refresh</mat-icon>
-        Reintentar
-      </button>
     </mat-card-content>
   </mat-card>
 </div>

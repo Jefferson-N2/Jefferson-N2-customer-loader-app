@@ -1,15 +1,24 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, Subject, timer, BehaviorSubject } from 'rxjs';
-import { switchMap, takeUntil, map, tap } from 'rxjs/operators';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { HealthService } from '../../services/health';
 import { HealthResponse } from '../../models';
 import { HealthStatus } from '../../shared/constants';
 
+/**
+ * Componente de monitoreo de salud del servidor
+ * 
+ * Características:
+ * - Auto-refresco cada 10 segundos
+ * - Indicadores de estado para backend, BD y servicios externos
+ * - Refresco manual con botón
+ * - Timestamps de última actualización
+ */
 @Component({
   selector: 'app-health',
   standalone: true,
@@ -22,30 +31,33 @@ import { HealthStatus } from '../../shared/constants';
   ],
   templateUrl: './health.html',
   styleUrl: './health.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Health implements OnInit, OnDestroy {
-  health$: Observable<HealthResponse>;
-  isLoading$ = new BehaviorSubject<boolean>(false);
-  lastRefresh$ = new BehaviorSubject<Date>(new Date());
+export class Health implements OnDestroy {
+  /** Observable con estado de salud */
+  readonly health$: Observable<HealthResponse>;
   
-  private destroy$ = new Subject<void>();
-  private refreshInterval = 20000; // 10 segundos
+  /** Estado de carga */
+  readonly isLoading$ = new BehaviorSubject<boolean>(false);
+  
+  /** Timestamp de último refresco */
+  readonly lastRefresh$ = new BehaviorSubject<Date>(new Date());
+  
+  /** Enum de estados disponibles */
+  readonly HealthStatus = HealthStatus;
 
-  HealthStatus = HealthStatus;
+  private readonly destroy$ = new Subject<void>();
+  private readonly refreshInterval = 10000; // 10 segundos
 
-  constructor(private healthService: HealthService) {
+  constructor(private readonly healthService: HealthService) {
     this.health$ = this.createHealthObservable();
-  }
-
-  ngOnInit(): void {}
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   /**
    * Crea un observable que se auto-refresca cada 10 segundos
+   * 
+   * @private
+   * @returns Observable con estado de salud del servidor
    */
   private createHealthObservable(): Observable<HealthResponse> {
     return timer(0, this.refreshInterval).pipe(
@@ -60,7 +72,13 @@ export class Health implements OnInit, OnDestroy {
   }
 
   /**
-   * Refresca el estado manualmente
+   * Refresca manualmente el estado de salud
+   * 
+   * @example
+   * ```typescript
+   * // En el template:
+   * <button (click)="refreshHealth()">Refrescar</button>
+   * ```
    */
   refreshHealth(): void {
     this.isLoading$.next(true);
@@ -68,16 +86,27 @@ export class Health implements OnInit, OnDestroy {
       .getHealth()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (health) => {
+        next: () => {
           this.lastRefresh$.next(new Date());
           this.isLoading$.next(false);
         },
-        error: () => this.isLoading$.next(false),
+        error: () => {
+          this.isLoading$.next(false);
+          console.error('[HealthComponent] Error al refrescar estado');
+        }
       });
   }
 
   /**
    * Retorna la clase CSS según el estado
+   * 
+   * @param status - Estado del componente (UP/DOWN)
+   * @returns Clase CSS a aplicar
+   * 
+   * @example
+   * ```html
+   * <div [ngClass]="getStatusClass(health.status)">
+   * ```
    */
   getStatusClass(status: string | undefined): string {
     return status === HealthStatus.UP ? 'status-up' : 'status-down';
@@ -85,8 +114,16 @@ export class Health implements OnInit, OnDestroy {
 
   /**
    * Retorna el ícono según el estado
+   * 
+   * @param status - Estado del componente (UP/DOWN)
+   * @returns Nombre del ícono Material
    */
   getStatusIcon(status: string | undefined): string {
     return status === HealthStatus.UP ? 'check_circle' : 'error_circle';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

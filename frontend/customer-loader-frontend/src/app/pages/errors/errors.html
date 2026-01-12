@@ -1,48 +1,76 @@
-<div class="errors-container">
+<div class="errors-container" role="main">
+  <!-- Encabezado -->
   <div class="errors-header">
-    <h1>Errores de Carga</h1>
-    <button mat-raised-button color="primary" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
+    <h1 id="errors-title">Errores de Carga</h1>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="goBack()"
+      aria-label="Volver al dashboard"
+    >
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
       Volver
     </button>
   </div>
 
   <!-- Información del Proceso -->
-  <mat-card class="process-info" *ngIf="processId">
+  <mat-card
+    class="process-info"
+    *ngIf="processId$ | async as processId"
+    role="region"
+    aria-label="Información del proceso de carga"
+  >
     <mat-card-content>
       <span class="label">Proceso ID:</span>
-      <span class="value">{{ processId }}</span>
+      <span class="value" role="status">{{ processId }}</span>
     </mat-card-content>
   </mat-card>
 
   <!-- Tabla de Errores -->
-  <div class="errors-table-container" *ngIf="errors$ | async as errors">
-    <table mat-table [dataSource]="errors.content" class="errors-table">
+  <div
+    class="errors-table-container"
+    *ngIf="errors$ | async as errors"
+    role="region"
+    aria-labelledby="errors-title"
+  >
+    <table
+      mat-table
+      [dataSource]="errors.content"
+      class="errors-table"
+      role="grid"
+      aria-label="Tabla de errores de carga"
+    >
       <!-- Columna: Línea -->
       <ng-container matColumnDef="lineNumber">
-        <th mat-header-cell *matHeaderCellDef>Línea</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Línea</th>
         <td mat-cell *matCellDef="let element">{{ element.lineNumber }}</td>
       </ng-container>
 
       <!-- Columna: Campo -->
       <ng-container matColumnDef="field">
-        <th mat-header-cell *matHeaderCellDef>Campo</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Campo</th>
         <td mat-cell *matCellDef="let element">{{ element.field || 'N/A' }}</td>
       </ng-container>
 
       <!-- Columna: Código Error -->
       <ng-container matColumnDef="code">
-        <th mat-header-cell *matHeaderCellDef>Código</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Código</th>
         <td mat-cell *matCellDef="let element">
-          <span class="error-code">{{ element.code }}</span>
+          <span class="error-code" [attr.aria-label]="'Error: ' + element.code">
+            {{ element.code }}
+          </span>
         </td>
       </ng-container>
 
       <!-- Columna: Mensaje -->
       <ng-container matColumnDef="message">
-        <th mat-header-cell *matHeaderCellDef>Mensaje</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">Mensaje</th>
         <td mat-cell *matCellDef="let element">
-          <span class="error-message" [title]="element.message">
+          <span
+            class="error-message"
+            [title]="element.message"
+            [attr.aria-label]="element.message"
+          >
             {{ element.message }}
           </span>
         </td>
@@ -50,13 +78,21 @@
 
       <!-- Columna: ID -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <th mat-header-cell *matHeaderCellDef scope="col">ID</th>
         <td mat-cell *matCellDef="let element">{{ element.idNumber || 'N/A' }}</td>
       </ng-container>
 
       <!-- Header y Rows -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <tr
+        mat-header-row
+        *matHeaderRowDef="displayedColumns"
+        role="row"
+      ></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns; trackBy: trackByLineNumber"
+        role="row"
+      ></tr>
     </table>
 
     <!-- Paginador -->
@@ -66,36 +102,42 @@
       [pageSizeOptions]="pageSizeOptions"
       (page)="onPageChange($event)"
       showFirstLastButtons
+      aria-label="Paginación de errores"
     ></mat-paginator>
   </div>
 
   <!-- Cargando -->
-  <div class="loading" *ngIf="isLoading$ | async">
-    <mat-spinner></mat-spinner>
+  <div
+    class="loading"
+    *ngIf="isLoading$ | async"
+    role="status"
+    aria-label="Cargando errores"
+  >
+    <mat-spinner aria-hidden="true"></mat-spinner>
     <p>Cargando errores...</p>
   </div>
 
   <!-- Vacío -->
-  <mat-card class="empty-state" *ngIf="(errors$ | async) as errors">
-    <ng-container *ngIf="errors.content.length === 0">
+  <ng-container *ngIf="errors$ | async as errors">
+    <mat-card
+      class="empty-state"
+      *ngIf="errors.content.length === 0"
+      role="status"
+    >
       <mat-card-content>
-        <mat-icon class="empty-icon">check_circle</mat-icon>
+        <mat-icon class="empty-icon" aria-hidden="true">check_circle</mat-icon>
         <h3>Sin errores</h3>
         <p>Todos los registros se cargaron correctamente</p>
       </mat-card-content>
-    </ng-container>
-  </mat-card>
+    </mat-card>
+  </ng-container>
 
   <!-- Error -->
-  <mat-card class="error-state" *ngIf="error$ | async as error">
+  <mat-card class="error-state" *ngIf="error$ | async as error" role="alert">
     <mat-card-content>
-      <mat-icon class="error-icon">error</mat-icon>
+      <mat-icon class="error-icon" aria-hidden="true">error</mat-icon>
       <h3>Error al cargar errores</h3>
       <p>{{ error }}</p>
-      <button mat-raised-button color="primary" (click)="loadErrors()">
-        <mat-icon>refresh</mat-icon>
-        Reintentar
-      </button>
     </mat-card-content>
   </mat-card>
 </div>
