@@ -1,0 +1,69 @@
+<mat-card class="upload-card">
+  <mat-card-header>
+    <mat-card-title>Carga Masiva de Clientes</mat-card-title>
+    <mat-card-subtitle>Selecciona un archivo TXT para procesar</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="upload-area" [ngClass]="{'drag-over': isDragOver}">
+      <input
+        type="file"
+        accept=".txt"
+        (change)="onFileSelected($event)"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        class="file-input"
+      />
+      
+      <div class="upload-content">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <h3>Arrastra tu archivo aquí</h3>
+        <p>o haz clic para seleccionar</p>
+        <p class="file-info">Formato: TXT | Máximo: 50 MB</p>
+      </div>
+    </div>
+
+    <div class="file-selected" *ngIf="selectedFile$ | async as file">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ file.name }} ({{ getFileSize(file.size) }})</span>
+      <button mat-icon-button (click)="clearFile()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="progress-section" *ngIf="isUploading$ | async">
+      <mat-progress-bar 
+        mode="determinate" 
+        [value]="uploadProgress$ | async"
+      ></mat-progress-bar>
+      <span class="progress-text">
+        Cargando... {{ uploadProgress$ | async }}%
+      </span>
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage$ | async as error">
+      <mat-icon>error</mat-icon>
+      <span>{{ error }}</span>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="uploadFile()"
+      [disabled]="!(selectedFile$ | async) || (isUploading$ | async)"
+    >
+      <mat-icon>upload</mat-icon>
+      Cargar
+    </button>
+    <button
+      mat-stroked-button
+      (click)="clearFile()"
+      [disabled]="!(selectedFile$ | async)"
+    >
+      Limpiar
+    </button>
+  </mat-card-actions>
+</mat-card>

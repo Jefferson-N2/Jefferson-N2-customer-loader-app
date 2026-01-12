@@ -1,1 +1,30 @@
-<p>dashboard works!</p>
+<div class="dashboard-layout">
+  <!-- Sidebar/Navigation -->
+  <aside class="dashboard-sidebar">
+    <h2>Procesos</h2>
+    <nav>
+      <a href="#" class="nav-item active">
+        <mat-icon>upload</mat-icon>
+        Cargar Archivo
+      </a>
+      <a href="#" class="nav-item">
+        <mat-icon>list</mat-icon>
+        Historial
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="dashboard-content">
+    <!-- Área de carga masiva -->
+    <section class="section-bulk-load">
+      <app-bulk-load></app-bulk-load>
+    </section>
+
+    <!-- Contenedor para rutas hijas (Clients, Errors) -->
+    <section class="section-results">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+
