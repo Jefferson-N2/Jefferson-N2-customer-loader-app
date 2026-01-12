@@ -5,7 +5,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable, Subject, timer } from 'rxjs';
 import { map, takeUntil, switchMap } from 'rxjs/operators';
-//import { HealthService } from '../../services/health';
+import { HealthService } from '../../services/health';
 import { HealthStatus } from '../../shared/constants';
 
 @Component({
@@ -16,12 +16,12 @@ import { HealthStatus } from '../../shared/constants';
   styleUrl: './header.scss',
 })
 export class Header implements OnInit, OnDestroy {
-  //healthStatus$: Observable<string>;
+  healthStatus$: Observable<string>;
   private destroy$ = new Subject<void>();
 
-  // constructor(private healthService: HealthService) {
-  //   this.healthStatus$ = this.createHealthStatusObservable();
-  // }
+  constructor(private healthService: HealthService) {
+    this.healthStatus$ = this.createHealthStatusObservable();
+  }
 
   ngOnInit(): void {}
 
@@ -31,11 +31,11 @@ export class Header implements OnInit, OnDestroy {
   }
 
   private createHealthStatusObservable(): Observable<string> {
-   /* return timer(0, 10000).pipe(
+    return timer(0, 10000).pipe(
       switchMap(() => this.healthService.getHealth()),
       map(health => health?.status || HealthStatus.DOWN),
       takeUntil(this.destroy$)
-    );*/
+    );
     return new Observable<string>();
   }
 }

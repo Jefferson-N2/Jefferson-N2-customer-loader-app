@@ -29,7 +29,7 @@ export class Health implements OnInit, OnDestroy {
   lastRefresh$ = new BehaviorSubject<Date>(new Date());
   
   private destroy$ = new Subject<void>();
-  private refreshInterval = 10000; // 10 segundos
+  private refreshInterval = 20000; // 10 segundos
 
   HealthStatus = HealthStatus;
 

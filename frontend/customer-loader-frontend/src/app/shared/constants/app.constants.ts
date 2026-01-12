@@ -71,7 +71,7 @@ export const MESSAGES = {
  */
 export const DEFAULTS = {
   PAGE_SIZE: 10,
-  HEALTH_CHECK_INTERVAL: 10000, // 10 segundos
+  HEALTH_CHECK_INTERVAL: 20000, // 10 segundos
   REQUEST_TIMEOUT: 30000, // 30 segundos
   SNACKBAR_DURATION: 5000, // 5 segundos
 };
