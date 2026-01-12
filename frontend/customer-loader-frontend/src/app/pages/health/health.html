@@ -1,1 +1,91 @@
-<p>health works!</p>
+<div class="health-container">
+  <div class="health-header">
+    <h1>Estado de Salud del Sistema</h1>
+    <button mat-raised-button color="primary" (click)="refreshHealth()">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="health-content" *ngIf="(health$ | async) as health">
+    <!-- Card Principal de Estado -->
+    <mat-card class="health-card main-status" [ngClass]="getStatusClass(health.status)">
+      <mat-card-header>
+        <mat-card-title>Estado General</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-display">
+          <mat-icon class="status-icon" [ngClass]="health.status === HealthStatus.UP ? 'icon-up' : 'icon-down'">
+            {{ getStatusIcon(health.status) }}
+          </mat-icon>
+          <div class="status-info">
+            <span class="status-text">{{ health.status }}</span>
+            <span class="status-label">{{ health.status === HealthStatus.UP ? 'Sistema Operativo' : 'Sistema No Disponible' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card Servicio -->
+    <mat-card class="health-card">
+      <mat-card-header>
+        <mat-card-title>Servicio Backend</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Nombre:</span>
+          <span class="value">{{ health.service }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Versión:</span>
+          <span class="value">{{ health.version }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card Base de Datos -->
+    <mat-card class="health-card" [ngClass]="getStatusClass(health.checks?.database)">
+      <mat-card-header>
+        <mat-card-title>Base de Datos</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-display compact">
+          <mat-icon class="status-icon" [ngClass]="health.checks?.database === HealthStatus.UP ? 'icon-up' : 'icon-down'">
+            {{ getStatusIcon(health.checks?.database) }}
+          </mat-icon>
+          <div class="status-info">
+            <span class="status-text">{{ health.checks?.database }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card Timestamp -->
+    <mat-card class="health-card">
+      <mat-card-header>
+        <mat-card-title>Información de Consulta</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Última consulta:</span>
+          <span class="value">{{ lastRefresh$ | async | date: 'short' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Timestamp del servidor:</span>
+          <span class="value">{{ health.timestamp | date: 'short' }}</span>
+        </div>
+        <div class="detail-row auto-refresh">
+          <mat-icon *ngIf="(isLoading$ | async)">sync</mat-icon>
+          <span *ngIf="(isLoading$ | async)">Actualizando...</span>
+          <span *ngIf="!(isLoading$ | async)">Auto-refresh: cada 10 segundos</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="(isLoading$ | async) && !(health$ | async)">
+    <mat-spinner></mat-spinner>
+    <p>Cargando estado del sistema...</p>
+  </div>
+</div>

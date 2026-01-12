@@ -4,6 +4,7 @@ import { Header } from './layout/header/header';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet, Header],
   templateUrl: './app.html',
   styleUrl: './app.scss'

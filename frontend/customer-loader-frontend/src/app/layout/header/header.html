@@ -1,1 +1,17 @@
-<p>header works!</p>
+<header>
+  <mat-toolbar color="primary">
+    <span class="logo">Customer Loader</span>
+    
+    <span class="spacer"></span>
+
+    <nav class="nav-links">
+      <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a mat-button routerLink="/health" routerLinkActive="active">Estado</a>
+    </nav>
+
+    <div class="health-indicator">
+      <span class="indicator-dot"></span>
+      <span class="indicator-text">Ready</span>
+    </div>
+  </mat-toolbar>
+</header>

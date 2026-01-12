@@ -9,22 +9,24 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard),
-    data: { title: 'Dashboard - Carga de Clientes' }
-  },
-  {
-    path: 'clients/:processId',
-    loadComponent: () => import('./pages/clients/clients').then(m => m.Clients),
-    data: { title: 'Clientes' }
-  },
-  {
-    path: 'errors/:processId',
-    loadComponent: () => import('./pages/errors/errors').then(m => m.Errors),
-    data: { title: 'Errores de Carga' }
+    data: { title: 'Dashboard - Carga Masiva de Clientes' },
+    children: [
+      {
+        path: 'clients/:processId',
+        loadComponent: () => import('./pages/clients/clients').then(m => m.Clients),
+        data: { title: 'Clientes Cargados' }
+      },
+      {
+        path: 'errors/:processId',
+        loadComponent: () => import('./pages/errors/errors').then(m => m.Errors),
+        data: { title: 'Errores de Carga' }
+      }
+    ]
   },
   {
     path: 'health',
     loadComponent: () => import('./pages/health/health').then(m => m.Health),
-    data: { title: 'Estado de Salud' }
+    data: { title: 'Estado de Salud del Sistema' }
   },
   {
     path: '**',
