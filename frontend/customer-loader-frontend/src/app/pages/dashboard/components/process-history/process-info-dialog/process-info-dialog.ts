@@ -103,11 +103,13 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
     private readonly cdr: ChangeDetectorRef
   ) {
     this.processId = data.processId;
+    console.log(' ProcessInfoDialogComponent constructor - processId:', this.processId);
     this.errors$ = this.errorsSubject$.asObservable();
     this.clients$ = this.clientsSubject$.asObservable();
   }
 
   ngOnInit(): void {
+    console.log(' ProcessInfoDialogComponent ngOnInit called');
     this.loadProcessDetails();
     
     this.errorFilterIdType$
@@ -146,7 +148,9 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
+    console.log(' About to call loadErrors()');
     this.loadErrors();
+    console.log(' About to call loadClients()');
     this.loadClients();
   }
 
@@ -185,14 +189,22 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
    */
   private loadErrors(): void {
     this.isLoadingErrors$.next(true);
+    console.log('✓✓ loadErrors() INICIO - processId:', this.processId, 'página:', this.errorCurrentPage$.value);
     
     // Usar el endpoint /processes/{processId}/errors que devuelve datos paginados
     this.processService
       .getProcessErrors(this.processId, this.errorCurrentPage$.value, 5)
       .pipe(
         tap((data: any) => {
+          console.log('✓✓ API RESPONSE errores recibido:', data);
           if (data) {
-            let errorsData = data.content || data;
+            // Adaptarse a la estructura del backend: {errors, totalErrors} o {content, totalElements}
+            let errorsData = data.errors || data.content || [];
+            const totalErrors = data.totalErrors || data.totalElements || 0;
+            
+            console.log('✓✓ errorsData extraído:', errorsData);
+            console.log('✓✓ totalErrors:', totalErrors);
+            
             if (!Array.isArray(errorsData)) {
               errorsData = [];
             }
@@ -208,13 +220,14 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
             // NO acumular datos, reemplazar completamente
             const processedData = {
               content: errorsData,
-              totalElements: data.totalElements || errorsData.length,
-              totalPages: data.totalPages || Math.ceil(errorsData.length / 5),
+              totalElements: totalErrors,
+              totalPages: Math.ceil(totalErrors / 5),
               size: 5,
               number: this.errorCurrentPage$.value,
               empty: errorsData.length === 0
             };
             
+            console.log('✓✓ processedData errores FINAL:', processedData);
             this.errorsSubject$.next(processedData);
           } else {
             this.errorsSubject$.next({
@@ -228,8 +241,10 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
           }
           this.isLoadingErrors$.next(false);
           this.cdr.markForCheck();
+          console.log('✓✓ errorsSubject$ actualizado y markForCheck() llamado');
         }),
         catchError((error) => {
+          console.error('✗✗ ERROR EN loadErrors():', error);
           this.isLoadingErrors$.next(false);
           this.errorsSubject$.next({
             content: [],
@@ -259,16 +274,25 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
    */
   private loadClients(): void {
     this.isLoadingClients$.next(true);
+    console.log(' loadClients() INICIO - processId:', this.processId);
     
     this.clientService
       .getClients(this.processId, this.clientCurrentPage$.value, 5)
       .pipe(
-        tap(data => {
-          let clientsData = data.content || [];
+        tap((data: any) => {
+          console.log(' API RESPONSE recibido:', data);
+          
+          // Adaptarse a la estructura del backend: {clients, totalClients, processId}
+          let clientsData = data.clients || data.content || [];
+          const totalClients = data.totalClients || data.totalElements || 0;
+          
+          console.log(' clientsData extraído:', clientsData);
+          console.log(' totalClients:', totalClients);
           
           // Aplicar filtros localmente
           const nameFilter = this.clientFilterName$.value?.toLowerCase() || '';
           const codeFilter = this.clientFilterCode$.value?.toLowerCase() || '';
+          console.log(' Filtros - nombre:', nameFilter, 'código:', codeFilter);
           
           if (nameFilter || codeFilter) {
             clientsData = clientsData.filter((client: any) => {
@@ -278,22 +302,27 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
                 client.clientCode?.toLowerCase().includes(codeFilter);
               return matchesName && matchesCode;
             });
+            console.log(' clientsData después de filtros:', clientsData);
           }
           
           // NO acumular datos, reemplazar completamente
           const processedData = {
-            ...data,
             content: clientsData,
-            totalElements: data.totalElements,
+            totalElements: totalClients,
+            totalPages: Math.ceil(totalClients / 5),
+            size: 5,
+            number: this.clientCurrentPage$.value,
             empty: clientsData.length === 0
           };
           
+          console.log(' processedData FINAL:', processedData);
           this.clientsSubject$.next(processedData);
           this.isLoadingClients$.next(false);
           this.cdr.markForCheck();
+          console.log(' clientsSubject$ actualizado y markForCheck() llamado');
         }),
         catchError((error) => {
-          console.error('Error loading clients:', error);
+          console.error('✗✗ ERROR EN loadClients():', error);
           this.isLoadingClients$.next(false);
           this.clientsSubject$.next({
             content: [],

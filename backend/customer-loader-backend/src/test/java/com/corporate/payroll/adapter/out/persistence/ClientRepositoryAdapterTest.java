@@ -187,7 +187,7 @@ class ClientRepositoryAdapterTest {
         String processId = "process-123";
         int page = 2;
         int size = 10;
-        int expectedOffset = page * size; // 20
+        int expectedOffset = page * size; 
 
         TypedQuery<ClientEntity> query = mock(TypedQuery.class);
 

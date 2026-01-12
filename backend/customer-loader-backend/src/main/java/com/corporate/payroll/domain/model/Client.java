@@ -25,4 +25,14 @@ public class Client {
     private String phoneNumber;
     private String processId;
     private List<Account> accounts;
+    
+    public Account getFirstAccount() {
+        return accounts != null && !accounts.isEmpty() ? accounts.get(0) : null;
+    }
+    
+    public PayrollPayment getFirstPayment() {
+        Account account = getFirstAccount();
+        return account != null && account.getPayments() != null && !account.getPayments().isEmpty() 
+            ? account.getPayments().get(0) : null;
+    }
 }

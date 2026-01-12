@@ -179,7 +179,7 @@ export class BulkLoadComponent implements OnDestroy {
     this.isUploading$.next(false);
     this.uploadProgress$.next(100);
 
-    const message = `✓ Carga completada: ${response.successCount} clientes creados`;
+    const message = ` Carga completada: ${response.successCount} clientes creados`;
     this.showNotification(message, 'success');
 
     // Limpiar después de mostrar el mensaje

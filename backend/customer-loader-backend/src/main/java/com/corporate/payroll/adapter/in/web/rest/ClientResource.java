@@ -59,10 +59,13 @@ public class ClientResource {
             @Parameter(description = "Tamaño de página") @QueryParam("size") @DefaultValue("20") int size) {
         
         List<Client> clients = clientRepository.findAll(page, size);
+        List<ClientDetailDto> clientDetails = clients.stream()
+                .map(clientDetailMapper::toDto)
+                .toList();
         long totalElements = clientRepository.countAll();
         
-        PagedResponseDto<Client> response = paginationService.createPagedResponse(
-                clients, totalElements, page, size);
+        PagedResponseDto<ClientDetailDto> response = paginationService.createPagedResponse(
+                clientDetails, totalElements, page, size);
         
         return Response.ok(response).build();
     }
@@ -76,10 +79,13 @@ public class ClientResource {
             @QueryParam("size") @DefaultValue("20") int size) {
         
         List<Client> clients = clientRepository.findByProcessId(processId, page, size);
+        List<ClientDetailDto> clientDetails = clients.stream()
+                .map(clientDetailMapper::toDto)
+                .toList();
         long totalElements = clientRepository.countByProcessId(processId);
         
-        PagedResponseDto<Client> response = paginationService.createPagedResponse(
-                clients, totalElements, page, size);
+        PagedResponseDto<ClientDetailDto> response = paginationService.createPagedResponse(
+                clientDetails, totalElements, page, size);
         
         return Response.ok(response).build();
     }
@@ -97,20 +103,7 @@ public class ClientResource {
                     .build();
         }
         
-        Client client = clientOpt.get();
-        Optional<Account> accountOpt = accountRepository.findByClientId(client.getId());
-        
-        if (accountOpt.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"message\":\"Cuenta no encontrada para el cliente\"}")
-                    .build();
-        }
-        
-        Account account = accountOpt.get();
-        PayrollPayment firstPayment = paymentRepository.findByAccountId(account.getId(), 0, 1)
-                .stream().findFirst().orElse(null);
-        
-        ClientDetailDto clientDetail = clientDetailMapper.toDto(client, account, firstPayment);
+        ClientDetailDto clientDetail = clientDetailMapper.toDto(clientOpt.get());
         
         return Response.ok(clientDetail).build();
     }
