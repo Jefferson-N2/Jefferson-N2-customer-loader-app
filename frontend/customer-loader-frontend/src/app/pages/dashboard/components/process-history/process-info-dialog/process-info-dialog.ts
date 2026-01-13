@@ -59,7 +59,7 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
   readonly errors$: Observable<PaginatedResponse<BulkLoadError>>;
   readonly errorFilterIdType$ = new BehaviorSubject<string>('');
   readonly errorCurrentPage$ = new BehaviorSubject<number>(0);
-  readonly errorDisplayedColumns: readonly string[] = ['lineNumber', 'idType', 'idNumber', 'errorType', 'errorMessage'];
+  readonly errorDisplayedColumns: readonly string[] = ['lineNumber', 'fieldName', 'errorMessage'];
   
   // ==================== CLIENTES ====================
   readonly clients$: Observable<PaginatedResponse<ClientDetail>>;
@@ -189,45 +189,37 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
    */
   private loadErrors(): void {
     this.isLoadingErrors$.next(true);
-    console.log('✓✓ loadErrors() INICIO - processId:', this.processId, 'página:', this.errorCurrentPage$.value);
     
     // Usar el endpoint /processes/{processId}/errors que devuelve datos paginados
     this.processService
       .getProcessErrors(this.processId, this.errorCurrentPage$.value, 5)
       .pipe(
         tap((data: any) => {
-          console.log('✓✓ API RESPONSE errores recibido:', data);
           if (data) {
-            // Adaptarse a la estructura del backend: {errors, totalErrors} o {content, totalElements}
-            let errorsData = data.errors || data.content || [];
-            const totalErrors = data.totalErrors || data.totalElements || 0;
-            
-            console.log('✓✓ errorsData extraído:', errorsData);
-            console.log('✓✓ totalErrors:', totalErrors);
+            let errorsData = data.content || [];
             
             if (!Array.isArray(errorsData)) {
               errorsData = [];
             }
             
-            // Aplicar filtro de tipo ID localmente
-            const idTypeFilter = this.errorFilterIdType$.value;
-            if (idTypeFilter) {
+            // Aplicar filtro de mensaje localmente
+            const filterMessage = this.errorFilterIdType$.value?.toLowerCase() || '';
+            if (filterMessage) {
               errorsData = errorsData.filter((error: any) => 
-                error.idType?.toUpperCase() === idTypeFilter.toUpperCase()
+                error.errorMessage?.toLowerCase().includes(filterMessage)
               );
             }
             
             // NO acumular datos, reemplazar completamente
             const processedData = {
               content: errorsData,
-              totalElements: totalErrors,
-              totalPages: Math.ceil(totalErrors / 5),
+              totalElements: data.totalElements || errorsData.length,
+              totalPages: data.totalPages || Math.ceil(errorsData.length / 5),
               size: 5,
               number: this.errorCurrentPage$.value,
               empty: errorsData.length === 0
             };
             
-            console.log('✓✓ processedData errores FINAL:', processedData);
             this.errorsSubject$.next(processedData);
           } else {
             this.errorsSubject$.next({
@@ -241,10 +233,9 @@ export class ProcessInfoDialogComponent implements OnInit, OnDestroy {
           }
           this.isLoadingErrors$.next(false);
           this.cdr.markForCheck();
-          console.log('✓✓ errorsSubject$ actualizado y markForCheck() llamado');
         }),
         catchError((error) => {
-          console.error('✗✗ ERROR EN loadErrors():', error);
+          console.error('Error loading errors:', error);
           this.isLoadingErrors$.next(false);
           this.errorsSubject$.next({
             content: [],

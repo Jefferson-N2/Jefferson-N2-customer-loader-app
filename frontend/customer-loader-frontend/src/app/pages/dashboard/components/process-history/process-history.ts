@@ -72,6 +72,7 @@ export class ProcessHistoryComponent implements OnDestroy {
   /** Columnas a mostrar en la tabla */
   readonly displayedColumns: readonly string[] = [
     'fileName',
+    'processId',
     'status',
     'acciones'
   ];
@@ -160,6 +161,15 @@ export class ProcessHistoryComponent implements OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe();
+  }
+
+  /**
+   * Refresca el listado de procesos
+   * Vuelve a cargar los datos desde el servidor
+   */
+  refreshProcesses(): void {
+    this.currentPage = 0;
+    this.loadProcesses();
   }
 
   /**

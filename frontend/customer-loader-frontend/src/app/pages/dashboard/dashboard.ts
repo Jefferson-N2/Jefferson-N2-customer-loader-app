@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,6 +30,18 @@ import { ProcessHistoryComponent } from './components/process-history/process-hi
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Dashboard {
+  @ViewChild(ProcessHistoryComponent) processHistoryComponent?: ProcessHistoryComponent;
+
   constructor(private readonly router: Router) {}
+
+  /**
+   * Maneja el evento de carga exitosa
+   * Refresca el historial de procesos
+   */
+  onUploadSuccess(response: any): void {
+    if (this.processHistoryComponent) {
+      this.processHistoryComponent.refreshProcesses();
+    }
+  }
 }
 

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { ClientDetail, PaginatedResponse } from '../models';
+import { ClientDetail, PaginatedResponse, Account, PayrollPayment } from '../models';
 
 /**
  * Servicio para gestionar clientes cargados
@@ -114,6 +114,44 @@ export class ClientService {
     ).pipe(
       timeout(this.requestTimeout),
       catchError(error => this.handleError(error, 'obtener cliente por código'))
+    );
+  }
+
+  /**
+   * Obtiene la cuenta de un cliente
+   * 
+   * @param clientId - ID único del cliente
+   * @returns Observable con datos de la cuenta
+   */
+  public getAccountByClientId(clientId: number): Observable<Account> {
+    if (!clientId) {
+      return throwError(() => new Error('ID de cliente requerido'));
+    }
+
+    return this.http.get<Account>(
+      `${environment.apiBaseUrl}/accounts/client/${clientId}`
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener cuenta del cliente'))
+    );
+  }
+
+  /**
+   * Obtiene el primer pago de una cuenta
+   * 
+   * @param accountId - ID único de la cuenta
+   * @returns Observable con datos del primer pago
+   */
+  public getFirstPaymentByAccountId(accountId: number): Observable<PayrollPayment> {
+    if (!accountId) {
+      return throwError(() => new Error('ID de cuenta requerido'));
+    }
+
+    return this.http.get<PayrollPayment>(
+      `${environment.apiBaseUrl}/accounts/client/${accountId}/first-payment`
+    ).pipe(
+      timeout(this.requestTimeout),
+      catchError(error => this.handleError(error, 'obtener primer pago'))
     );
   }
 

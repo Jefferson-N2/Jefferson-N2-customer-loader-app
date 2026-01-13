@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -37,6 +37,9 @@ import { environment } from '../../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BulkLoadComponent implements OnDestroy {
+  /** Evento emitido cuando la carga es exitosa */
+  @Output() readonly uploadSuccess = new EventEmitter<any>();
+  
   /** Observable del archivo seleccionado */
   readonly selectedFile$ = new BehaviorSubject<File | null>(null);
   
@@ -178,6 +181,9 @@ export class BulkLoadComponent implements OnDestroy {
   private handleUploadSuccess(response: any): void {
     this.isUploading$.next(false);
     this.uploadProgress$.next(100);
+    
+    // Emitir evento de carga exitosa
+    this.uploadSuccess.emit(response);
 
     const message = ` Carga completada: ${response.successCount} clientes creados`;
     this.showNotification(message, 'success');
@@ -247,6 +253,23 @@ export class BulkLoadComponent implements OnDestroy {
     return (
       Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
     );
+  }
+
+  /**
+   * Determina el color del progreso basado en el porcentaje
+   * 
+   * @param progress - Porcentaje de progreso (0-100)
+   * @returns Color del progreso: 'red', 'orange' u 'green'
+   */
+  getProgressColor(progress: number | null | undefined): 'red' | 'orange' | 'green' {
+    const value = progress ?? 0;
+    if (value < 33) {
+      return 'red';
+    } else if (value < 66) {
+      return 'orange';
+    } else {
+      return 'green';
+    }
   }
 
   ngOnDestroy(): void {

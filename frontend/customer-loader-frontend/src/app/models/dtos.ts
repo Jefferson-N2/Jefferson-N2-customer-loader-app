@@ -59,12 +59,8 @@ export interface BulkLoadError {
   id?: number;
   processId?: string;
   lineNumber: number; 
-  idType: string;
-  idNumber: string;
   errorMessage: string;
-  errorType: string;
-  fileName?: string;
-  processingDate?: string;
+  fieldName: string;
   createdAt?: string;
 }
 
@@ -72,25 +68,50 @@ export interface BulkLoadError {
  * DTO: Detalle de cliente
  */
 export interface ClientDetail {
+  id?: number;
   clientCode: string;
   idType: string; 
   idNumber: string;
-  firstNames: string;
-  lastNames: string;
+  firstName: string;
+  lastName: string;
   birthDate: string; 
   joinDate: string; 
   email: string;
   phoneNumber: string;
+  processId?: string;
   account?: Account;
+  firstPayment?: PaymentInfo;
+}
+
+/**
+ * DTO: Información de Pago
+ */
+export interface PaymentInfo {
+  paymentDate: string;
+  amount: number;
+  status: string;
+}
+
+/**
+ * DTO: Pago de Nómina
+ */
+export interface PayrollPayment {
+  id?: number;
+  accountId?: number;
+  paymentDate: string;
+  amount: number;
+  status?: string;
 }
 
 /**
  * DTO: Cuenta
  */
 export interface Account {
+  id?: number;
   accountNumber: string;
   payrollValue: number;
   status: string;
+  balance?: number;
 }
 
 /**

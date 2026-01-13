@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
@@ -6,9 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ClientService } from '../../../../../services/client';
-import { ClientDetail } from '../../../../../models';
+import { ClientDetail, Account, PayrollPayment } from '../../../../../models';
 
 /**
  * Componente de diálogo para mostrar detalles del cliente
@@ -34,9 +35,15 @@ import { ClientDetail } from '../../../../../models';
   styleUrl: './client-details-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ClientDetailsDialogComponent implements OnInit {
+export class ClientDetailsDialogComponent implements OnInit, OnDestroy {
   /** Datos del cliente */
   readonly clientDetails$ = new BehaviorSubject<ClientDetail | null>(null);
+  
+  /** Datos de la cuenta */
+  readonly account$ = new BehaviorSubject<Account | null>(null);
+  
+  /** Primer pago */
+  readonly firstPayment$ = new BehaviorSubject<PayrollPayment | null>(null);
   
   /** Estado de carga */
   readonly isLoading$ = new BehaviorSubject<boolean>(false);
@@ -44,8 +51,11 @@ export class ClientDetailsDialogComponent implements OnInit {
   /** Mensaje de error */
   readonly error$ = new BehaviorSubject<string | null>(null);
 
-  /** Columnas para tabla de pagos (simulada) */
+  /** Columnas para tabla de pagos */
   readonly paymentColumns = ['date', 'amount', 'status'];
+  
+  /** Subject para desuscripción */
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { clientDetail: ClientDetail },
@@ -55,7 +65,55 @@ export class ClientDetailsDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Los datos ya están cargados desde el dialog data
+    const client = this.clientDetails$.value;
+    if (client?.id) {
+      this.loadAccountAndPayment(client.id);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga la cuenta y el primer pago del cliente
+   */
+  private loadAccountAndPayment(clientId: number): void {
+    this.isLoading$.next(true);
+    this.error$.next(null);
+
+    // Cargar cuenta
+    this.clientService.getAccountByClientId(clientId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (account) => {
+          this.account$.next(account);
+          
+          // Si hay cuenta, cargar el primer pago
+          if (account?.id) {
+            this.clientService.getFirstPaymentByAccountId(account.id)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (payment) => {
+                  this.firstPayment$.next(payment);
+                  this.isLoading$.next(false);
+                },
+                error: (err) => {
+                  console.error('Error loading payment:', err);
+                  this.isLoading$.next(false);
+                }
+              });
+          } else {
+            this.isLoading$.next(false);
+          }
+        },
+        error: (err) => {
+          console.error('Error loading account:', err);
+          this.error$.next('No se pudieron cargar los datos de la cuenta');
+          this.isLoading$.next(false);
+        }
+      });
   }
 
   /**
@@ -75,32 +133,24 @@ export class ClientDetailsDialogComponent implements OnInit {
    * Genera datos de ejemplo para historial de pagos
    */
   getPaymentHistory(): any[] {
-    const client = this.clientDetails$.value;
-    if (!client?.account?.accountNumber) {
+    const account = this.account$.value;
+    const payment = this.firstPayment$.value;
+    
+    if (!account?.accountNumber) {
       return [];
     }
+
+    const payments = [];
     
-    // TODO: Implementar llamada real al API cuando esté disponible
-    // return this.paymentService.getPaymentHistory(client.account.accountNumber);
-    
-    // Datos de ejemplo basados en la cuenta del cliente
-    return [
-      {
-        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        amount: client.account.payrollValue || 2500000,
-        status: 'COMPLETED'
-      },
-      {
-        date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-        amount: client.account.payrollValue || 2500000,
-        status: 'COMPLETED'
-      },
-      {
-        date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-        amount: client.account.payrollValue || 2500000,
-        status: 'COMPLETED'
-      }
-    ];
+    if (payment) {
+      payments.push({
+        date: payment.paymentDate,
+        amount: payment.amount,
+        status: payment.status || 'COMPLETED'
+      });
+    }
+
+    return payments;
   }
 
   /**

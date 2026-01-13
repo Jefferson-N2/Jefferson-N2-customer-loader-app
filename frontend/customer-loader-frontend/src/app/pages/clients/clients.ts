@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil, switchMap, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -32,7 +33,8 @@ import { PaginatedResponse, ClientDetail } from '../../models';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
@@ -142,6 +144,19 @@ export class Clients implements OnDestroy {
           return of(this.createEmptyResponse());
         })
       );
+  }
+
+  /**
+   * Refresca los datos de la tabla
+   */
+  refreshClients(): void {
+    const processId = this.processId$.value;
+    if (processId) {
+      this.currentPage = 0;
+      this.loadClientsInternal(processId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
   }
 
   /**

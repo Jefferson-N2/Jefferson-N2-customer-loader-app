@@ -94,18 +94,14 @@
             <thead>
               <tr>
                 <th>Línea</th>
-                <th>ID Tipo</th>
-                <th>ID Número</th>
-                <th>Código Error</th>
+                <th>Campo</th>
                 <th>Mensaje</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let error of details.errors">
                 <td>{{ error.lineNumber }}</td>
-                <td>{{ error.idType }}</td>
-                <td>{{ error.idNumber }}</td>
-                <td><span class="error-code">{{ error.errorType }}</span></td>
+                <td>{{ error.fieldName }}</td>
                 <td>{{ error.errorMessage }}</td>
               </tr>
             </tbody>

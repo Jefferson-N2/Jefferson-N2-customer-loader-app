@@ -3,7 +3,7 @@
   <main class="dashboard-content">
     <!-- Área de carga masiva -->
     <section class="section-bulk-load">
-      <app-bulk-load></app-bulk-load>
+      <app-bulk-load (uploadSuccess)="onUploadSuccess($event)"></app-bulk-load>
     </section>
 
     <!-- Historial de procesos -->

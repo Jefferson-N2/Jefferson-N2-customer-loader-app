@@ -181,6 +181,39 @@
   mat-progress-bar {
     margin-bottom: 6px;
     height: 4px;
+
+    // Rojo (0-33%)
+    &.progress-red {
+      ::ng-deep .mat-mdc-progress-bar-buffer {
+        background-color: rgba(244, 67, 54, 0.1);
+      }
+
+      ::ng-deep .mat-mdc-progress-bar-fill::after {
+        background-color: #f44336;
+      }
+    }
+
+    // Anaranjado (33-66%)
+    &.progress-orange {
+      ::ng-deep .mat-mdc-progress-bar-buffer {
+        background-color: rgba(255, 152, 0, 0.1);
+      }
+
+      ::ng-deep .mat-mdc-progress-bar-fill::after {
+        background-color: #ff9800;
+      }
+    }
+
+    // Verde (66-100%)
+    &.progress-green {
+      ::ng-deep .mat-mdc-progress-bar-buffer {
+        background-color: rgba(76, 175, 80, 0.1);
+      }
+
+      ::ng-deep .mat-mdc-progress-bar-fill::after {
+        background-color: #4caf50;
+      }
+    }
   }
 
   .progress-text {

@@ -65,7 +65,7 @@
     <!-- Barra de progreso -->
     <div
       class="progress-section"
-      *ngIf="isUploading$ | async"
+      *ngIf="isUploading$ | async as isLoading"
       role="progressbar"
       [attr.aria-valuenow]="uploadProgress$ | async"
       aria-valuemin="0"
@@ -75,6 +75,7 @@
       <mat-progress-bar
         mode="determinate"
         [value]="uploadProgress$ | async"
+        [ngClass]="'progress-' + getProgressColor((uploadProgress$ | async) ?? 0)"
       ></mat-progress-bar>
       <span class="progress-text">
         Cargando... {{ uploadProgress$ | async }}%
