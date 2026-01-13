@@ -1,0 +1,14 @@
+C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845
+P,A123,2026-01-07,700,jose123@gmail.com,0954887842
+X,789XYZ,2024-02-20,3000,error.tipo@example.com,0912345678
+C,!@#$$%,2024-03-05,3500,error.numero@example.com,0912345678
+C,111222,invalid-date,4000,error.fecha@example.com,0912345678
+C,333444,2024-13-01,cuatroMil,error.valor@example.com,0912345678
+C,555666,2024-05-01,5000,correo_invalido,12345
+C,777888,2024-06-01,-1000,valid@example.com,09876543210
+,1111111,2024-08-01,8000,sin.tipo@example.com,0987654321
+C,,2024-09-01,9000,sin.numero@example.com,0987654321
+C,2222222,,10000,sin.fecha@example.com,0987654321
+C,3333333,2024-10-01,,sin.valor@example.com,0987654321
+C,4444444,2024-11-01,11000,,0987654321
+C,5555555,2024-12-01,12000,sin.telefono@example.com,
