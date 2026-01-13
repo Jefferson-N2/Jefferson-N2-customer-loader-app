@@ -111,6 +111,7 @@ mysql -h 127.0.0.1 -u root -proot payroll_db
 
 # Ver clientes creados
 ```
+```
 SELECT * FROM clients;
 ```
 
@@ -119,14 +120,6 @@ SELECT * FROM clients;
 docker-compose down
 ```
 
----
 
-mysql -h 127.0.0.1 -u root -proot payroll_db
-
-# Ver clientes creados
-SELECT * FROM clients;
-```
-
----
 
 
