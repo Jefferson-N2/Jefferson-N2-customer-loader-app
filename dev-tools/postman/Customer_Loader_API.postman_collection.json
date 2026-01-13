@@ -1,9 +1,11 @@
 {
 	"info": {
-		"_postman_id": "customer-loader-api-tests",
-		"name": "Customer Loader API",
+		"_postman_id": "8d4c47ab-22a4-4814-8307-f765d794076b",
+		"name": "Customer Loader API Copy",
 		"description": "API para carga masiva de clientes y gestión de nómina",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16893698",
+		"_collection_link": "https://dark-rocket-831531.postman.co/workspace/Test~52ce96e7-0580-4b5d-af86-e4eed7d496b2/collection/16893698-8d4c47ab-22a4-4814-8307-f765d794076b?action=share&source=collection_link&creator=16893698"
 	},
 	"item": [
 		{
@@ -23,7 +25,8 @@
 								"health"
 							]
 						}
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -54,24 +57,37 @@
 								}
 							]
 						}
-					}
+					},
+					"response": []
 				},
 				{
-					"name": "Get Client by ID",
+					"name": "Get Clients by ProcessId",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/clients/{{client_id}}",
+							"raw": "{{base_url}}/processes/{{process_id}}/clients?page=0&size=10",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"clients",
-								"{{client_id}}"
+								"processes",
+								"{{process_id}}",
+								"clients"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
 							]
 						}
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -94,7 +110,8 @@
 								"{{client_id}}"
 							]
 						}
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get First Payment by Account ID",
@@ -113,7 +130,8 @@
 								"first-payment"
 							]
 						}
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -121,30 +139,60 @@
 			"name": "Bulk Load",
 			"item": [
 				{
-					"name": "Upload Clients File",
+					"name": "Upload Clients File - Valid Data",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
+							"mode": "raw",
+							"raw": "C,1725364578,2024-01-15,800,jaime123@gmail.com,0954887845\nP,A123,2024-02-20,700,jose123@gmail.com,0954887842\nC,789XYZ,2024-02-20,3000,valido1@example.com,0912345678\nC,ABC123,2024-03-05,3500,valido2@example.com,0987654321\nP,DEF456,2024-04-10,4000,valido3@example.com,0912345678\nC,GHI789,2024-05-15,4500,valido4@example.com,0987654321"
 						},
 						"url": {
-							"raw": "{{base_url}}/bulk-load",
+							"raw": "{{base_url}}/bulk-load/clients?fileName=archivo_mixto.txt",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"bulk-load"
+								"bulk-load",
+								"clients"
+							],
+							"query": [
+								{
+									"key": "fileName",
+									"value": "archivo_mixto.txt"
+								}
 							]
 						}
-					}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Clients File - With Errors (Future Dates)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845\nP,A123,2026-01-07,700,jose123@gmail.com,0954887842\nC,789XYZ,2024-02-20,3000,valido1@example.com,0912345678\nC,ABC123,2024-03-05,3500,valido2@example.com,0987654321\nP,DEF456,2024-04-10,4000,valido3@example.com,0912345678\nC,GHI789,2024-05-15,4500,valido4@example.com,0987654321"
+						},
+						"url": {
+							"raw": "{{base_url}}/bulk-load/clients?fileName=archivo_mixto.txt",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"bulk-load",
+								"clients"
+							],
+							"query": [
+								{
+									"key": "fileName",
+									"value": "archivo_mixto.txt"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -175,41 +223,41 @@
 								}
 							]
 						}
-					}
+					},
+					"response": []
 				},
 				{
-					"name": "Get Process by ID",
+					"name": "Get Process Details by ID",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/processes/{{process_id}}",
+							"raw": "{{base_url}}/processes/{{process_id}}/details",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"processes",
-								"{{process_id}}"
+								"{{process_id}}",
+								"details"
 							]
 						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Errors",
-			"item": [
+					},
+					"response": []
+				},
 				{
-					"name": "Get All Errors",
+					"name": "Get Process Errors",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/errors?page=0&size=10",
+							"raw": "{{base_url}}/processes/{{process_id}}/errors?page=0&size=10",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"processes",
+								"{{process_id}}",
 								"errors"
 							],
 							"query": [
@@ -223,12 +271,47 @@
 								}
 							]
 						}
-					}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Process Clients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/processes/{{process_id}}/clients?page=0&size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"processes",
+								"{{process_id}}",
+								"clients"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
 	],
 	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8081",
+			"type": "string"
+		},
 		{
 			"key": "client_id",
 			"value": "1",
@@ -241,7 +324,7 @@
 		},
 		{
 			"key": "process_id",
-			"value": "1",
+			"value": "",
 			"type": "string"
 		}
 	]

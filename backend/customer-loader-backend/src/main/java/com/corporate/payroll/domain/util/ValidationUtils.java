@@ -70,12 +70,21 @@ public final class ValidationUtils {
     }
 
     /**
-     * Valida que un valor sea una fecha válida
+     * Valida que un valor sea una fecha válida y no sea futura
      * @return BulkLoadError si falla la validación, null si es válido
      */
     public static BulkLoadError validateDate(String value, DateTimeFormatter formatter, String errorMessage, Integer lineNumber) {
         try {
-            LocalDate.parse(Objects.toString(value,"").trim(), formatter);
+            LocalDate parsedDate = LocalDate.parse(Objects.toString(value,"").trim(), formatter);
+            
+            // Validar que la fecha no sea futura
+            if (parsedDate.isAfter(LocalDate.now())) {
+                return BulkLoadError.builder()
+                    .lineNumber(lineNumber)
+                    .errorMessage("Campo 'Fecha de ingreso' (columna 3): La fecha no puede ser futura. Valor encontrado: '" + value + "'")
+                    .build();
+            }
+            
             return null;
         } catch (DateTimeParseException e) {
             return BulkLoadError.builder()

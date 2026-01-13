@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClientValidator {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern ID_TYPE_PATTERN = Pattern.compile("^[CP]$");
     private static final Pattern ALPHANUMERIC_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$", Pattern.CASE_INSENSITIVE);
     private static final DateTimeFormatter DATE_FORMATTER = 

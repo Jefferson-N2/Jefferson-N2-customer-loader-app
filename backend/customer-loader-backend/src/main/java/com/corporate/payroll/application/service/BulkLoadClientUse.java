@@ -29,13 +29,13 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
 
     @Inject
     private BulkLoadErrorRepositoryPort errorRepository;
-    
+
     @Inject
     private BulkLoadProcessRepositoryPort bulkLoadProcessRepository;
-    
+
     @Inject
     private RowValidationService rowValidationService;
-    
+
     @Inject
     private ClientProcessingService clientProcessingService;
 
@@ -43,7 +43,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
     @Transactional(rollbackOn = Exception.class)
     public BulkLoadStatisticsResponseDto processBulkLoad(InputStream fileStream, String fileName) {
         validateInput(fileStream, fileName);
-        
+
         String processId = UUID.randomUUID().toString();
         LocalDateTime processingDate = LocalDateTime.now();
 
@@ -52,7 +52,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
             bulkLoadProcessRepository.save(process);
 
             ProcessingResult result = processFile(reader, processId, fileName, processingDate);
-            
+
             updateProcessStatus(process, result);
             bulkLoadProcessRepository.update(process);
 
@@ -76,43 +76,67 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
         }
     }
 
-    private ProcessingResult processFile(BufferedReader reader, String processId, 
-                                       String fileName, LocalDateTime processingDate) throws IOException {
+    private ProcessingResult processFile(BufferedReader reader, String processId,
+                                         String fileName, LocalDateTime processingDate) throws IOException {
         List<RowProcessingContext> validRows = new ArrayList<>();
         List<BulkLoadError> allErrors = new ArrayList<>();
-        
+
         String line;
         int lineNumber = 1;
+        int totalLinesRead = 0;
 
-        // Phase 1: Validation
+        log.info("Iniciando procesamiento de archivo: {}", fileName);
+
         while ((line = reader.readLine()) != null) {
+            totalLinesRead++;
+            log.debug("Procesando línea {}: {}", lineNumber, line);
+
+            if (line.trim().isEmpty()) {
+                log.debug("Línea {} vacía, saltando", lineNumber);
+                lineNumber++;
+                continue;
+            }
+
+            // Validar la línea
             List<BulkLoadError> rowErrors = rowValidationService.validateRow(
-                    line, lineNumber, processId, fileName, processingDate, validRows);
-            
-            if (rowErrors.isEmpty() && !line.trim().isEmpty()) {
+                    line, lineNumber, processId, fileName, validRows);
+
+            if (rowErrors.isEmpty()) {
                 String[] values = parseCsvLine(line);
                 RowProcessingContext context = rowValidationService.createValidContext(
                         values, lineNumber, fileName, processingDate, processId);
                 validRows.add(context);
+                log.debug("Línea {} válida agregada", lineNumber);
             } else {
                 allErrors.addAll(rowErrors);
+                log.debug("Línea {} con {} errores", lineNumber, rowErrors.size());
             }
             lineNumber++;
         }
 
+        log.info("Archivo procesado: {} líneas leídas, {} válidas, {} con errores",
+                totalLinesRead, validRows.size(), allErrors.size());
+
+        // Persistir TODOS los errores de validación
         if (!allErrors.isEmpty()) {
+            log.info("Guardando {} errores de validación", allErrors.size());
             errorRepository.saveAll(allErrors);
-            return new ProcessingResult(0, allErrors.size());
         }
 
-        // Phase 2: Processing
-        return processValidRows(validRows);
+        // Procesar las filas válidas
+        ProcessingResult result = processValidRows(validRows);
+        
+        // Sumar los errores de validación al resultado
+        result = new ProcessingResult(result.successCount, result.errorCount + allErrors.size());
+        
+        return result;
     }
 
     private ProcessingResult processValidRows(List<RowProcessingContext> validRows) {
         int successCount = 0;
         int errorCount = 0;
-        
+
+        log.info("Procesando {} registros válidos", validRows.size());
         for (RowProcessingContext context : validRows) {
             if (clientProcessingService.processClient(context)) {
                 successCount++;
@@ -120,7 +144,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
                 errorCount++;
             }
         }
-        
+
         return new ProcessingResult(successCount, errorCount);
     }
 
@@ -164,7 +188,7 @@ public class BulkLoadClientUse implements BulkLoadClientUseCase {
     private static class ProcessingResult {
         final int successCount;
         final int errorCount;
-        
+
         ProcessingResult(int successCount, int errorCount) {
             this.successCount = successCount;
             this.errorCount = errorCount;

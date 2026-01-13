@@ -1,0 +1,1 @@
+X,789XYZ,2024-02-20,3000,error.tipo@example.com,0912345678

@@ -1,4 +1,0 @@
-C,1725364578,2026-01-09,800,jaime123@gmail.com,0954887845
-P,A123,2026-01-07,700,jose123@gmail.com,0954887842
-C,789XYZ,2024-02-20,3000,error.tipo@example.com,0912345678
-C,!@#$$%,2024-03-05,3500,error.numero@example.com,0912345678

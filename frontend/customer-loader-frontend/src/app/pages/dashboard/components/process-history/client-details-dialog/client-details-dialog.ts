@@ -160,7 +160,7 @@ export class ClientDetailsDialogComponent implements OnInit, OnDestroy {
     if (value === undefined || value === null) return 'N/A';
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'COP',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);

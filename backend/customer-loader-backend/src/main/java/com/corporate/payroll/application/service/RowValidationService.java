@@ -18,20 +18,16 @@ import static com.corporate.payroll.application.util.FileFieldValidator.parseCsv
 public class RowValidationService {
 
     public List<BulkLoadError> validateRow(String line, int lineNumber, String processId, 
-                                          String fileName, LocalDateTime processingDate,
+                                          String fileName,
                                           List<RowProcessingContext> existingRows) {
         
         List<BulkLoadError> errors = new ArrayList<>();
         
-        if (line.trim().isEmpty()) {
-            return errors; 
-        }
 
         String[] values = parseCsvLine(line);
 
         if (values.length < FileProcessingConstants.MIN_COLUMNS_REQUIRED) {
             errors.add(createIncompleteRowError(processId, lineNumber, fileName, values.length));
-            return errors;
         }
 
         String idType = getValue(values, FileProcessingConstants.INDEX_ID_TYPE);

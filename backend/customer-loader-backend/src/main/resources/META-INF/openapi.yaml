@@ -111,20 +111,23 @@ paths:
         '404':
           description: Payment not found
 
-  /bulk-load:
+  /bulk-load/clients:
     post:
       tags:
         - Bulk Load
       summary: Upload clients file
+      description: |
+        Carga un archivo de texto con registros de clientes.
+        Formato: TIPO_ID,NUMERO_ID,FECHA_INGRESO,VALOR_NOMINA,EMAIL,TELEFONO
+        Ejemplo:
+        C,1725364578,2024-01-15,800,jaime123@gmail.com,0954887845
+        P,A123,2024-02-20,700,jose123@gmail.com,0954887842
       requestBody:
         content:
-          multipart/form-data:
+          application/octet-stream:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
+              type: string
+              format: binary
       responses:
         '200':
           description: File uploaded successfully
@@ -159,25 +162,89 @@ paths:
               schema:
                 $ref: '#/components/schemas/PagedResponse'
 
-  /processes/{id}:
+  /processes/{processId}/details:
     get:
       tags:
         - Processes
-      summary: Get process by ID
+      summary: Get process details by ID
       parameters:
-        - name: id
+        - name: processId
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+        - name: includeErrors
+          in: query
+          schema:
+            type: boolean
+            default: true
       responses:
         '200':
-          description: Process details
+          description: Process details with clients and errors
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkLoadProcess'
+                $ref: '#/components/schemas/ProcessDetailsResponse'
+        '404':
+          description: Process not found
+
+  /processes/{processId}/errors:
+    get:
+      tags:
+        - Processes
+      summary: Get process errors
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResponse'
+
+  /processes/{processId}/clients:
+    get:
+      tags:
+        - Processes
+      summary: Get process clients
+      parameters:
+        - name: processId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResponse'
 
   /errors:
     get:
@@ -280,25 +347,68 @@ components:
     BulkLoadProcess:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
+        processId:
+          type: string
+          format: uuid
         fileName:
           type: string
         status:
           type: string
         totalRecords:
           type: integer
-        processedRecords:
+        successfulCount:
           type: integer
-        errorRecords:
+        errorCount:
           type: integer
-        startTime:
+        processingDate:
+          type: array
+          items:
+            type: integer
+
+    ProcessDetailsResponse:
+      type: object
+      properties:
+        processId:
           type: string
-          format: date-time
-        endTime:
+          format: uuid
+        fileName:
           type: string
-          format: date-time
+        status:
+          type: string
+        totalRecords:
+          type: integer
+        successfulCount:
+          type: integer
+        errorCount:
+          type: integer
+        processingDate:
+          type: array
+          items:
+            type: integer
+        clients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Client'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkLoadError'
+
+    BulkLoadError:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        processId:
+          type: string
+          format: uuid
+        lineNumber:
+          type: integer
+        errorMessage:
+          type: string
+        recordData:
+          type: string
 
     BulkLoadResponse:
       type: object
