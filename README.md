@@ -3,6 +3,10 @@
 ## Descripción
 Plataforma de carga masiva de datos de nómina. Permite cargar archivos TXT con información de empleados, validarlos y crear cuentas bancarias automáticamente.
 
+## 1. Resumen Ejecutivo
+
+Se realizaron pruebas exhaustivas en el sistema de carga masiva de clientes para validar el comportamiento de los validadores de datos, manejo de errores y endpoints de consulta. 
+
 ## Stack
 - **Backend:** Java 21, Wildfly, Jakarta EE, MySQL
 - **Frontend:** Angular 21+, TypeScript
@@ -106,6 +110,7 @@ cd backend/customer-loader-backend
 mysql -h 127.0.0.1 -u root -proot payroll_db
 
 # Ver clientes creados
+```
 SELECT * FROM clients;
 ```
 

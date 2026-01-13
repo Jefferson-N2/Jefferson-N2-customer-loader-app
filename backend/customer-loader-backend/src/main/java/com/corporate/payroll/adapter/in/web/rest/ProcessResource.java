@@ -58,7 +58,7 @@ public class ProcessResource {
         Optional<BulkLoadProcess> process = processRepository.findByProcessId(processId);
 
         if (process.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND) 
+            return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"message\":\"Proceso no encontrado\"}")
                     .build();
         }
